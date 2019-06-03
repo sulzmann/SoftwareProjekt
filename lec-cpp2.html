@@ -1,0 +1,525 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Martin Sulzmann" />
+  <title>Einführung in C++ - Teil 2</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Einführung in C++ - Teil 2</h1>
+  <p class="author">
+Martin Sulzmann
+  </p>
+</div>
+<div id="inhalt" class="slide section level1">
+<h1>Inhalt</h1>
+<ul>
+<li><p>Objekte mit Zeigern (dynamisch allokierten Komponenten)</p></li>
+<li><p>Resource Acquisition Is Initialization (RAII)</p>
+<ul>
+<li>Anlegen der Resource im Konstruktor</li>
+<li>Freigabe via Destruktor</li>
+</ul></li>
+<li><p>&quot;copy&quot; (Rule of Three)</p></li>
+<li><p>C++11 rvalue references und &quot;move&quot; Semantik (Rule of Five)</p></li>
+</ul>
+</div>
+<div id="kopieren-von-objekten-und-zuweisung" class="slide section level1">
+<h1>Kopieren von Objekten und Zuweisung</h1>
+<ul>
+<li>Anlegen eines neuen Objekts als Kopie eines bestehenden Objekts</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  MyInt c(<span class="dv">1</span>);
+  MyInt d(c); </code></pre></div>
+<p><code>d</code> ist neues Objekt basierend auf einer Kopie von <code>c</code></p>
+<p>Jede Klasse hat einen (impliziten) Kopierkonstruktor der Form</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"> MyInt(MyInt c) { ... }</code></pre></div>
+<ul>
+<li>Zuweisung zwischen Objekten</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  MyInt f;
+  f = c;     </code></pre></div>
+<ul>
+<li>Beispiel komplett</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> MyInt {
+<span class="kw">public</span>:
+  MyInt(<span class="dt">int</span> y=<span class="dv">0</span>) { x=y;}
+  <span class="dt">int</span> x;
+};
+<span class="dt">int</span> main() {
+  MyInt c(<span class="dv">1</span>);
+  MyInt d(c);    
+  MyInt e = c;   
+  MyInt f;
+  f = c;     
+}</code></pre></div>
+</div>
+<div id="kopieren-mit-pointern" class="slide section level1">
+<h1>Kopieren mit Pointern</h1>
+<p>Was passiert im folgenden Fall?</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> MyInt {
+  <span class="kw">public</span>:
+  MyInt(<span class="dt">int</span> y=<span class="dv">0</span>) { x = <span class="kw">new</span> <span class="dt">int</span>(y); }
+  ~MyInt() { <span class="kw">delete</span> x; } 
+  <span class="dt">int</span>* x;                 <span class="co">// POINTER</span>
+};
+<span class="dt">void</span> f(MyInt d) {
+  *d.x = <span class="dv">0</span>;
+}
+<span class="dt">int</span> main() {
+  MyInt c = MyInt(<span class="dv">1</span>);
+  f(c);
+}</code></pre></div>
+</div>
+<div id="kopieren-mit-pointern-2" class="slide section level1">
+<h1>Kopieren mit Pointern (2)</h1>
+<ol style="list-style-type: decimal">
+<li>Anlegen einer dynamischen <code>int</code> Variable in Objekt <code>c</code></li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  MyInt c = MyInt(<span class="dv">1</span>);</code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Funktionsaufruf, bilde lokale Kopie</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  f(c);</code></pre></div>
+<ol start="3" style="list-style-type: decimal">
+<li>Freigeben von lokalem Objekt bei Funktionsaustritt
+<ul>
+<li>Aufruf des Destruktors von <code>C</code></li>
+<li>Freigeben des belegten Speichers der dynamischen <code>int</code> Variablen</li>
+</ul></li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> f(MyInt d) {
+  *d.x = <span class="dv">0</span>;
+} <span class="co">// Destruktor Aufruf auf d =&gt; delete d.x</span></code></pre></div>
+<p>Zeiger <code>d.x</code> des lokalen Objekts <code>d</code> und <code>c.x</code> des in main deklarierten Objekts <code>c</code> verweisen auf den gleichen Speicherbereich,</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Rücksprung nach <code>main</code></li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> main() {
+  MyInt c = MyInt(<span class="dv">1</span>);
+  f(c);
+} <span class="co">// Destruktor Aufruf auf d =&gt; delete c.x =&gt; CRASH</span></code></pre></div>
+<p>Es kracht weil <code>d.x</code> und <code>c.x</code> auf den gleichen Speicherbereich verweisen, und ein Speicherbereich nur einmal freigegeben werden kann.</p>
+</div>
+<div id="shallow-copy-versus-deep-copy" class="slide section level1">
+<h1>&quot;shallow copy&quot; versus &quot;deep copy&quot;</h1>
+<p>Das beobachtete Problem tritt ein weil C++ bei Zuweisung und Kopieren von Objekten immer eine &quot;shallow copy&quot; durchführt:</p>
+<ul>
+<li>Original und Kopie zeigen auf die gleiche Speicherstelle</li>
+<li>In unserem Fall, die Zeiger <code>d.x</code> und <code>c.x</code> zeigen auf den gleichen Speicherbereich</li>
+</ul>
+<p>Für unser problematisches Programm benötigen wir eine &quot;deep copy&quot;:</p>
+<ul>
+<li>Anlegen von neuem Speicher (&quot;clone&quot; in Java)</li>
+<li>Muss &quot;manuell&quot; von Programmierer angelegt werden</li>
+<li>Automatische Unterstützung durch
+<ul>
+<li>Überladung von Zuweisungsoperator</li>
+<li>Explizite Deklaration von Kopierkonstruktor</li>
+</ul></li>
+</ul>
+<h2 id="deep-copy-am-beispiel">&quot;deep copy&quot; am Beispiel</h2>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> MyInt {
+  <span class="kw">public</span>:
+  MyInt(<span class="dt">int</span> y=<span class="dv">0</span>) { x = <span class="kw">new</span> <span class="dt">int</span>(y); }
+  ~MyInt() { <span class="kw">delete</span> x; } 
+  MyInt(<span class="dt">const</span> MyInt&amp; src) { x = <span class="kw">new</span> <span class="dt">int</span>(*src.x); } <span class="co">// Kopieren</span>
+  MyInt&amp; <span class="kw">operator</span>=(<span class="dt">const</span> MyInt&amp; src) {             <span class="co">// Zuweisung</span>
+    <span class="kw">if</span>(<span class="kw">this</span> != &amp;src) {
+      <span class="kw">delete</span> x;
+      x = <span class="kw">new</span> <span class="dt">int</span>(*src.x);
+    }
+    <span class="kw">return</span> *<span class="kw">this</span>;
+  } 
+  <span class="dt">int</span>* x;
+};</code></pre></div>
+<p>Bedeutung von <code>const MyInt&amp; src</code>:</p>
+<ul>
+<li><p>Objekt bleibt unverändert/konstant</p></li>
+<li><p>Übergabe als Referenz (wichtig!)</p></li>
+<li><p>Falls Übergabe per Kopie befinden wir uns in einer unendlichen Schleife</p></li>
+<li><p>Der Kopierkonstruktor versucht sich quasi selbst aufzurufen</p></li>
+</ul>
+<p>Definition von</p>
+<ol style="list-style-type: decimal">
+<li><p>Destruktor</p></li>
+<li><p>Kopierkonstruktor</p></li>
+<li><p>Zuweisung via Kopie</p></li>
+</ol>
+<p>auch bekannt als <a href="https://en.wikipedia.org/wiki/Rule_of_three_(C%2B%2B_programming)">&quot;Rule of Three&quot;</a> in C++.</p>
+<p>In der Regel, Destruktor handhabt Resource Freigabe. Kopierkonstrutor und Zuweisung handhaben Weitergabe der Resource.</p>
+<h2 id="shallow-copy-noch-einmal">&quot;shallow copy&quot; noch einmal</h2>
+<p>Durch eine &quot;shallow copy&quot; entsteht das sogenannte &quot;aliasing&quot; Problem.</p>
+<p>Zwei Zeiger verweisen auf den gleichen Speicherbereich.</p>
+<p>Weitere Abhilfen:</p>
+<ul>
+<li>Referenzübergabe</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> f(MyInt&amp; d) { <span class="co">// call-by reference</span>
+  *d.x = <span class="dv">0</span>;
+}</code></pre></div>
+<ul>
+<li>Zuweisung/Kopieren verbieten</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> MyInt {
+  <span class="kw">private</span>:
+   MyInt(MyInt&amp; src){}
+   MyInt&amp;<span class="kw">operator</span>=(MyInt&amp; src){}
+  ...
+};</code></pre></div>
+</div>
+<div id="copy-versus-move" class="slide section level1">
+<h1>&quot;copy&quot; versus &quot;move&quot;</h1>
+<p>Bisher.</p>
+<p>&quot;shallow copy&quot; ist zu unsicher.</p>
+<p>&quot;deep copy&quot; ist nicht sehr performant.</p>
+<p>Wie wäre ein &quot;move&quot;?</p>
+<ul>
+<li><p>Kopiere Pointer</p></li>
+<li><p>Invalidiere &quot;alten&quot; Pointer (wird auf <code>nullptr</code>) gesetzt.</p></li>
+<li><p><code>delete nullptr</code> ohne Effekt</p></li>
+</ul>
+<h2 id="versuch-der-move-semantik-am-laufenden-beispiel">Versuch der &quot;move&quot; Semantik am laufenden Beispiel</h2>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">
+<span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">class</span> MyInt {
+  <span class="kw">public</span>:
+
+  <span class="dt">int</span>* x;
+  
+  MyInt(<span class="dt">int</span> y=<span class="dv">0</span>) { x = <span class="kw">new</span> <span class="dt">int</span>(y); }
+  ~MyInt() { <span class="kw">delete</span> x; } 
+  MyInt(MyInt&amp; src) {
+    <span class="kw">this</span>-&gt;x = src.x;
+    src.x = <span class="kw">nullptr</span>;
+  } 
+  MyInt&amp; <span class="kw">operator</span>=(MyInt&amp; src) {             
+    <span class="kw">if</span>(<span class="kw">this</span> != &amp;src) {
+      <span class="kw">delete</span> <span class="kw">this</span>-&gt;x;
+      <span class="kw">this</span>-&gt;x = src.x;
+      src.x = <span class="kw">nullptr</span>;
+    }
+    <span class="kw">return</span> *<span class="kw">this</span>;
+  }
+
+  <span class="dt">bool</span> isNull() {
+    <span class="kw">return</span> x == <span class="kw">nullptr</span>;
+  }
+};
+
+
+<span class="dt">void</span> foo(MyInt z) {
+  *z.x = <span class="dv">3</span>;
+}
+
+<span class="dt">int</span> main() {
+  MyInt x(<span class="dv">5</span>);
+  MyInt y;
+
+  x = y;
+
+  foo(x);
+
+   cout &lt;&lt; x.isNull() &lt;&lt; <span class="st">&quot; &quot;</span> &lt;&lt; y.isNull() ;
+}</code></pre></div>
+<h2 id="diskussion">Diskussion</h2>
+<p>Beachte &quot;shallow copy&quot; <code>!=</code> &quot;move&quot;.</p>
+<p>Im Fall von &quot;move&quot; wird Pointer auf <code>nullptr</code> gesetzt.</p>
+<p>Beachte: <code>delete nullptr</code> hat keinen Effekt.</p>
+<p>Beobachtungen:</p>
+<ul>
+<li><p>Nach <code>x = y</code> ist ein Zugriff auf <code>y</code> nicht mehr möglich.</p></li>
+<li><p>Ist so gewollt, da ein &quot;move&quot; stattfindet.</p></li>
+<li><p>Aber im Fall von <code>foo(x)</code> findet auch ein &quot;move&quot; statt!</p></li>
+<li><p>Danach ist ein Zugriff auf <code>x</code> nicht mehr möglich.</p></li>
+</ul>
+<p>Weitere Einschränkungen:</p>
+<ul>
+<li><p><code>foo(MyInt(4))</code></p></li>
+<li><p><code>x = MyInt(4)</code></p></li>
+</ul>
+<p>nicht erlaubt, da Argumente von Kopierkonstruktor/Zuweisung lvalues sein müssen. Aber <code>MyInt(4)</code> ist ein rvalue!</p>
+<p>Wunschliste:</p>
+<ul>
+<li><p>&quot;copy&quot; für lvalues (automatisch)</p></li>
+<li><p>&quot;move&quot; für rvalues (automatisch)</p></li>
+<li><p>An bestimmten Programmpunkt (manuell), transformiere lvalue in ein rvalue, um einen &quot;move&quot; anstatt &quot;copy&quot; auszuführen</p></li>
+</ul>
+<p>Weiteres Vorgehen.</p>
+<ul>
+<li><p>lvalues versus rvalues</p></li>
+<li><p>C++11 rvalue references und &quot;move&quot; Semantik</p></li>
+</ul>
+</div>
+<div id="l-value-lvalue-versus-r-value-rvalue" class="slide section level1">
+<h1>L-Value (lvalue) versus R-Value (rvalue)</h1>
+<p>Jeder Ausdruck (expression) hat</p>
+<ul>
+<li><p>einen Typ (kann meistens statisch bestimmt werden), und</p></li>
+<li><p>und einen Wert (der in der Regel erst dynamisch = zur Laufzeit feststeht).</p></li>
+</ul>
+<p>Was bedeutet lvalue und rvalue?</p>
+<ul>
+<li><p>lvalue steht links von Zuweisung?</p></li>
+<li><p>rvalue steht rechts von Zuweisung?</p></li>
+</ul>
+<p>Ein paar Beispiele.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> inc (<span class="dt">int</span> x) {
+  <span class="kw">return</span> x<span class="dv">+1</span>;
+}
+
+...
+
+<span class="dt">int</span> x;
+<span class="dt">int</span>* p;
+<span class="dt">int</span> <span class="dt">const</span> y = <span class="dv">5</span>;
+
+x  = <span class="dv">5</span>;
+p  = &amp;x;
+x = inc(x);
+*p = <span class="dv">6</span>;
+y  = <span class="dv">7</span>;   <span class="co">// Compiler meckert, const kann nicht links stehen</span></code></pre></div>
+<p>&quot;return values&quot; können rvalues sein.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">
+<span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+
+<span class="dt">int</span> cnt = <span class="dv">0</span>;
+
+<span class="dt">int</span> inc() {
+  cnt++;
+  <span class="kw">return</span> cnt;
+}
+
+<span class="dt">int</span> get() {
+  <span class="kw">return</span> cnt;
+}
+
+<span class="dt">int</span>&amp; access() {
+  <span class="kw">return</span> cnt;
+}
+
+<span class="co">/*</span>
+<span class="co">// Won&#39;t compile, ref to stack object.</span>
+<span class="co">int&amp; access2() {</span>
+<span class="co">  int cnt = get();</span>
+<span class="co">  return cnt;</span>
+<span class="co">}</span>
+<span class="co">*/</span>
+
+<span class="dt">int</span> inc2(<span class="dt">int</span>&amp; x) {
+  <span class="kw">return</span> x<span class="dv">+1</span>;
+}
+
+<span class="dt">int</span> inc3(<span class="dt">const</span> <span class="dt">int</span>&amp; x) {
+  <span class="kw">return</span> x<span class="dv">+1</span>;
+}
+
+
+<span class="dt">void</span> testInc2() {
+  <span class="dt">int</span> y;
+  inc2(y);
+  <span class="co">// inc2(10);  // Compiler meckert, lvalue erwartet</span>
+  inc3(<span class="dv">10</span>);     <span class="co">// OK weil const</span>
+                <span class="co">// Compiler baut</span>
+                <span class="co">// int _x10 = 10;</span>
+                <span class="co">// inc3(_x10);</span>
+}
+
+<span class="kw">class</span>  Foo {
+  <span class="dt">int</span> x;
+  <span class="kw">public</span>:
+  Foo(<span class="dt">int</span> x) { <span class="kw">this</span>-&gt;x = x; }
+};
+
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> x;
+  x =inc();
+  inc();
+  access() = get();          <span class="co">// OK</span>
+
+  cout &lt;&lt; x &lt;&lt; <span class="st">&quot; &quot;</span> &lt;&lt; get();
+
+  Foo(<span class="dv">2</span>) = f;                <span class="co">// OK, temporary object </span>
+  
+  <span class="kw">return</span> <span class="dv">1</span>;
+}</code></pre></div>
+<p><b> lvalues sind <em>lokalisierbar</em> (Localizable), d.h. erreichbar wie Speicheradresse.</b></p>
+<p><b> rvalues sind <em>lesbar</em> (Readable), lvalues sind deshalb auch rvalues.</b></p>
+</div>
+<div id="c11---rvalue-references-und-move-semantik" class="slide section level1">
+<h1>C++11 - rvalue references und move Semantik</h1>
+<h2 id="rvalue-and-lvalue-references">rvalue and lvalue references</h2>
+<p>lvalue reference: <code>int &amp;ref1 = x;</code> (C++)</p>
+<p>rvalue reference: <code>int &amp;&amp;ref1 = 5;</code> (C++11)</p>
+<ul>
+<li><p>lvalue/rvalue reference initialisiert werden (es sei denn Parameter)</p></li>
+<li><p>lvalue reference verlangt initialen lvalue</p></li>
+<li><p>rvalue reference verlangt initialen rvalue</p></li>
+</ul>
+<p><code>std::move</code></p>
+<ul>
+<li>konvertiert Objekt vom Type <code>T</code> in ein &quot;moveable&quot; Objekt vom Type <code>&amp;&amp;T</code></li>
+</ul>
+<h2 id="beispiel">Beispiel</h2>
+<p>Verlangt C++11 compiler, auf dem mac z.B. via <code>g++ -std=c++11</code>.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">class</span> MyInt {
+  <span class="kw">public</span>:
+  
+  <span class="dt">int</span>* x;
+
+  MyInt(<span class="dt">int</span> y=<span class="dv">0</span>) { x = <span class="kw">new</span> <span class="dt">int</span>(y); }
+  ~MyInt() { <span class="kw">delete</span> x; }
+
+  <span class="co">// copy</span>
+  MyInt(<span class="dt">const</span> MyInt&amp; src) {      
+      x = <span class="kw">new</span> <span class="dt">int</span>(*src.x);
+      cout &lt;&lt; <span class="st">&quot;copy Cons</span><span class="ch">\n</span><span class="st">&quot;</span>;
+  }
+
+  <span class="co">// copy</span>
+  MyInt&amp; <span class="kw">operator</span>=(<span class="dt">const</span> MyInt&amp; src) {             
+    <span class="kw">if</span>(<span class="kw">this</span> != &amp;src) {
+      <span class="kw">delete</span> x;
+      x = <span class="kw">new</span> <span class="dt">int</span>(*src.x);
+    }
+    cout &lt;&lt; <span class="st">&quot;copy =</span><span class="ch">\n</span><span class="st">&quot;</span>;    
+    <span class="kw">return</span> *<span class="kw">this</span>;
+  }
+
+  <span class="co">// move</span>
+  MyInt(MyInt&amp;&amp; src) {
+    <span class="kw">this</span>-&gt;x = src.x;
+    src.x = <span class="kw">nullptr</span>;
+    cout &lt;&lt; <span class="st">&quot;move Cons</span><span class="ch">\n</span><span class="st">&quot;</span>;
+  }
+
+  <span class="co">// move</span>
+  MyInt&amp; <span class="kw">operator</span>=(MyInt&amp;&amp; src) {             
+    <span class="kw">if</span>(<span class="kw">this</span> != &amp;src) {
+      <span class="kw">delete</span> <span class="kw">this</span>-&gt;x;
+      <span class="kw">this</span>-&gt;x = src.x;
+      src.x = <span class="kw">nullptr</span>;
+    }
+    cout &lt;&lt; <span class="st">&quot;move =</span><span class="ch">\n</span><span class="st">&quot;</span>;    
+    <span class="kw">return</span> *<span class="kw">this</span>;
+  }
+
+  <span class="dt">bool</span> isNull() {
+    <span class="kw">return</span> x == <span class="kw">nullptr</span>;
+  }
+};
+
+
+<span class="dt">void</span> foo(MyInt z) {
+  *z.x = <span class="dv">3</span>;
+}
+
+<span class="dt">int</span> main() {
+  MyInt x(<span class="dv">5</span>);
+  MyInt y;
+
+  x = y;
+
+  x = MyInt(<span class="dv">3</span>);
+
+  foo(MyInt(<span class="dv">4</span>));
+
+  x = move(y);
+
+  x = MyInt(<span class="dv">3</span>);
+  
+  cout &lt;&lt; x.isNull() &lt;&lt; <span class="st">&quot; &quot;</span> &lt;&lt; y.isNull() ;
+}</code></pre></div>
+<h2 id="zusammenfassung">Zusammenfassung</h2>
+<p>C++ Rule of Three</p>
+<p>C++11 <a href="https://en.wikipedia.org/wiki/Rule_of_three_(C%2B%2B_programming)">Rule of Five</a></p>
+<p>Definiere (geeignet)</p>
+<ol style="list-style-type: decimal">
+<li><p>Destruktor</p></li>
+<li><p>&quot;copy&quot; Konstruktor</p></li>
+<li><p>&quot;copy&quot; Zuweisung</p></li>
+<li><p>&quot;move&quot; Konstruktor</p></li>
+<li><p>&quot;move&quot; Zuweisung</p></li>
+</ol>
+<h2 id="anwendung">Anwendung</h2>
+<p>C++11 <a href="https://en.wikipedia.org/wiki/Smart_pointer">&quot;smart&quot; pointers</a></p>
+<h3 id="stdunique_ptr">std::unique_ptr</h3>
+<p><a href="https://thispointer.com/c11-unique_ptr-tutorial-and-examples/">std:unique_ptr</a></p>
+<p>Wrapper Klasse, um</p>
+<ul>
+<li><p>dynamische angelegte Resourcen zu verwalten (z.B. ein &quot;raw&quot; C++ pointer),</p></li>
+<li><p>die Resource wird freigegeben, sobald Lebenszeit des Objektes zu Ende (via Destruktor),</p></li>
+<li><p>kein &quot;copy&quot; nur &quot;move&quot;, deshalb &quot;unique&quot;.</p></li>
+</ul>
+<p>Es gibt einen (&quot;unique&quot;) Besitzer (&quot;owner&quot;).</p>
+<h3 id="stdshared_ptr">std:shared_ptr</h3>
+<p><a href="https://en.cppreference.com/w/cpp/memory/shared_ptr">std:shared_ptr</a></p>
+<ul>
+<li><p>Mehrere &quot;owner&quot;</p></li>
+<li><p>Verwendet &quot;reference counting&quot;</p></li>
+<li><p>Letzte &quot;owner&quot; gibt Resource frei oder Zuweisung an anderen Pointer (&quot;ownership transfer&quot;)</p></li>
+</ul>
+</div>
+</body>
+</html>

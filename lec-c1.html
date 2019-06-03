@@ -1,0 +1,1009 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Martin Sulzmann" />
+  <title>Einführung in C - Teil 1</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Einführung in C - Teil 1</h1>
+  <p class="author">
+Martin Sulzmann
+  </p>
+</div>
+<div id="inhalt" class="slide section level1">
+<h1>Inhalt</h1>
+<ul>
+<li>Motivation</li>
+<li>Hello World</li>
+<li>&quot;Work flow&quot;: Editieren/compilieren/ausführen</li>
+<li>Argumentübergabe</li>
+<li>IO printf/scanf</li>
+<li>Einfache Datentypen und Ausdrücke</li>
+<li>Kontrollstrukturen
+<ul>
+<li>Bedingte Anweisung (Kurzschlussauswertung)</li>
+<li>Schleifen (break und continue)</li>
+</ul></li>
+<li>Komplexe Datenstrukturen</li>
+</ul>
+</div>
+<div id="motivation" class="slide section level1">
+<h1>Motivation</h1>
+<h2 id="wieso-cc-nicht">Wieso C/C++ (nicht?)</h2>
+<h2 id="c-am-beispiel-quicksort">C am Beispiel (quicksort)</h2>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">
+<span class="ot">#include &quot;stdio.h&quot;</span>
+
+<span class="co">/*</span>
+
+<span class="co">Quicksort.</span>
+
+<span class="co">Idea: Split array (some totally ordered collection of values) into</span>
+<span class="co">       those that are lesser and greater than a certain element</span>
+<span class="co">       (commonly referred to as the pivot element).</span>
+
+<span class="co">      Quicksort the lesser and greater array.</span>
+
+<span class="co">      Concat results.</span>
+
+
+<span class="co">Example:</span>
+
+<span class="co">[3,2,5,1,4]</span>
+
+
+<span class="co">pick first element 3 as our pivat element.</span>
+
+<span class="co">lesser = [2,1]</span>
+
+<span class="co">greater = [5,4]</span>
+
+
+<span class="co">quicksort [2,1] =&gt; [1,2]</span>
+
+<span class="co">quicksort [5,4] =&gt; [4,5]</span>
+
+
+<span class="co">Then,</span>
+
+<span class="co">   quicksort [3,2,5,1,4] </span>
+
+<span class="co">= (quicksort [2,1])  ++ [3] ++ (quicksort [5,4])</span>
+
+<span class="co">= [1,2] ++ [3] ++ [4,5]</span>
+
+<span class="co">= [1,2,3,4,5]</span>
+
+<span class="co"> */</span>
+
+<span class="dt">void</span> display(<span class="dt">int</span> x[], <span class="dt">int</span> low, <span class="dt">int</span> high) {
+
+  printf(<span class="st">&quot;</span><span class="ch">\n</span><span class="st"> x[] low = %d high =%d </span><span class="ch">\n</span><span class="st">&quot;</span>, low, high);
+  
+  <span class="kw">for</span>(; low &lt;= high; low++) {
+    printf(<span class="st">&quot;%d &quot;</span>, x[low]);
+  }
+}
+
+
+<span class="dt">void</span> swap(<span class="dt">int</span>* x, <span class="dt">int</span>* y) {
+  <span class="dt">int</span> temp = *x;
+  *x = *y;
+  *y = temp;
+}
+
+
+
+<span class="dt">void</span> quicksort(<span class="dt">int</span> x[],<span class="dt">int</span> left, <span class="dt">int</span> right){
+   <span class="dt">int</span> i, j, pivot, temp;
+
+   <span class="kw">if</span>(left &lt; right){
+      pivot=left;
+      i=left;
+      j=right;
+
+      <span class="co">/*</span>
+<span class="co">       1. Partition array </span>
+<span class="co">         </span>
+<span class="co">           (a) </span>
+<span class="co">           From left and right compare against pivot element.</span>
+<span class="co">           Adjust i (upper left frontier) and j (lower right frontier).</span>
+<span class="co">           Swap if frontiers haven&#39;t met yet.</span>
+
+<span class="co">           (b)</span>
+<span class="co">           Swap so that pivot element is placed in the middle.</span>
+
+<span class="co">       2. Recursively quicksort</span>
+
+<span class="co">           (a)</span>
+<span class="co">           All elements lesser (or equal) than pivot element.</span>
+<span class="co">           (b)</span>
+<span class="co">           All elements greater than pivot element.         </span>
+
+<span class="co">       */</span>
+
+      <span class="co">// (1a)</span>
+      <span class="kw">while</span>(i&lt;j){
+    <span class="kw">while</span>(x[i]&lt;=x[pivot] &amp;&amp; i&lt;right) <span class="co">// (I1)</span>
+            i++;
+    <span class="kw">while</span>(x[j]&gt;x[pivot])            <span class="co">// (I2)</span>
+            j--;
+         <span class="kw">if</span>(i&lt;j){
+       swap(&amp;x[i], &amp;x[j]);
+         }
+      }
+
+      <span class="co">// (1b)</span>
+      swap(&amp;x[pivot], &amp;x[j]);
+
+      <span class="co">// (2a)</span>
+      quicksort(x,left,j<span class="dv">-1</span>);
+      <span class="co">// (2b)</span>
+      quicksort(x,j<span class="dv">+1</span>,right);
+
+   }
+}
+
+<span class="co">/*</span>
+
+<span class="co">Further comments.</span>
+
+<span class="co">(I1) The side condition &quot;i&lt;right&quot; ensures that we stay</span>
+<span class="co">     within valid array bounds.</span>
+<span class="co">     We might reach the case that i = right.</span>
+<span class="co">     Access to x[right] is valid, so we can safely evaluate</span>
+<span class="co">     x[i] &lt;= x[pivot] and then abort the while loop because</span>
+<span class="co">     condition &quot;i&lt;right&quot; no longer holds.</span>
+
+<span class="co">(I2) </span>
+
+<span class="co">*/</span>
+
+
+
+<span class="dt">int</span> main() {
+
+  <span class="dt">int</span> x[] = {<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">5</span>};
+  <span class="dt">int</span> l, r, l2, r2;
+
+  display(x, <span class="dv">0</span>, <span class="dv">4</span>);
+  quicksort(x, <span class="dv">0</span>, <span class="dv">4</span>);
+  display(x, <span class="dv">0</span>, <span class="dv">4</span>);  
+  
+  <span class="kw">return</span> <span class="dv">1</span>;
+}</code></pre></div>
+<h2 id="haskell-im-vergleich">Haskell im Vergleich</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">quicksort [] <span class="fu">=</span> []
+quicksort (p<span class="fu">:</span>xs) <span class="fu">=</span> (quicksort lesser) <span class="fu">++</span> [p] <span class="fu">++</span> (quicksort greater)
+    <span class="kw">where</span>
+        lesser <span class="fu">=</span> filter (<span class="fu">&lt;</span> p) xs
+        greater <span class="fu">=</span> filter (<span class="fu">&gt;=</span> p) xs</code></pre></div>
+<h2 id="zusammengefasst">Zusammengefasst</h2>
+<p>C/C++</p>
+<ul>
+<li><p>Totale Kontrolle!</p></li>
+<li><p>Keine (wenig) Sicherheit (safety, correctness, ...)</p></li>
+</ul>
+<p>Haskell</p>
+<ul>
+<li><p>Sehr viel Sicherheit!</p></li>
+<li><p>Weniger Kontrolle (lazy evaluation, GC, ...)</p></li>
+</ul>
+</div>
+<div id="hello-world" class="slide section level1">
+<h1>Hello World</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt; </span><span class="co">// standard i/o lib</span>
+
+<span class="co">// Wird vom Betriebssystem gestartet</span>
+<span class="dt">int</span> main() { 
+  printf(<span class="st">&quot;Hallo Welt! </span><span class="ch">\n</span><span class="st">&quot;</span>); <span class="co">// vgl. java println() </span>
+
+  <span class="kw">return</span> <span class="dv">0</span>;  <span class="co">// Rueckgabewert Fehlercode/Status</span>
+}</code></pre></div>
+</div>
+<div id="work-flow" class="slide section level1">
+<h1>Work flow</h1>
+<ul>
+<li>Program editieren (z.B. emacs, jeder andere Texteditor tut es auch)</li>
+<li>Compilieren und ausführen:</li>
+</ul>
+<pre><code>$ gcc.exe helloWord.c
+
+$ ./a.exe
+Hallo Welt!</code></pre>
+<p>Alternativ</p>
+<pre><code>$ gcc.exe -o helloWord.exe helloWord.c
+
+$ ./helloWorld.exe
+Hallo Welt!</code></pre>
+</div>
+<div id="main-argumentübergabe" class="slide section level1">
+<h1>main Argumentübergabe</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="co">// argc Anzahl der Aufrufargumente bei Programmstart</span>
+<span class="co">// argv Array der Argumente </span>
+<span class="dt">int</span> main(<span class="dt">int</span> argc, <span class="dt">char</span>* argv[]) {
+  <span class="dt">int</span> i = <span class="dv">0</span>;
+  <span class="kw">while</span>(argc &gt;= <span class="dv">0</span>) {
+    printf(<span class="st">&quot;Argument %d = %s </span><span class="ch">\n</span><span class="st">&quot;</span>, i<span class="dv">+1</span>, argv[i]);
+    i++;
+    argc--;
+  }
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<p>Beispiel</p>
+<pre><code>$ ./mainArgs.exe hi 5        
+Argument 1 = ./mainArgs.exe
+Argument 2 = hi 
+Argument 3 = 5 
+Argument 4 = (null) </code></pre>
+</div>
+<div id="io-printf" class="slide section level1">
+<h1>IO printf</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="dt">int</span> main() {
+ printf (<span class="st">&quot;Characters: %c %c </span><span class="ch">\n</span><span class="st">&quot;</span>, &#39;a&#39;, <span class="dv">65</span>);
+ printf (<span class="st">&quot;Decimals: %d %ld</span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="dv">1977</span>, 650000L);
+ printf (<span class="st">&quot;float: %f </span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="fl">3.1416</span>);
+ printf (<span class="st">&quot;%s </span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="st">&quot;A string&quot;</span>);
+}</code></pre></div>
+<p>liefert</p>
+<pre><code>Characters: a A 
+Decimals: 1977 650000
+float: 3.141600 
+A string </code></pre>
+</div>
+<div id="io-printf-zusammenfassung" class="slide section level1">
+<h1>IO printf Zusammenfassung</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"> printf (<span class="st">&quot;Decimals: %d %ld</span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="dv">1977</span>, 650000L);</code></pre></div>
+<ul>
+<li>Erster Parameter: eine Zeichenkette (Literal mit Format-Steuertext)</li>
+<li>Weitere Parameter: Variablen mit Typen gemäß Format-Steuerung</li>
+<li>Platzhalter im Format-Steuertext:</li>
+</ul>
+<pre><code>%d    Dezimalzahl 
+%f   Kommazahl  (float oder double)</code></pre>
+<ul>
+<li>Sonderzeichen im Format-Steuertext:</li>
+</ul>
+<pre><code>\n    new line, Zeilenvorschub 
+\t    Tabulator </code></pre>
+<ul>
+<li>Mehr Info hier:</li>
+</ul>
+<p><a href="http://www.cplusplus.com/reference/clibrary/cstdio/printf/" class="uri">http://www.cplusplus.com/reference/clibrary/cstdio/printf/</a></p>
+</div>
+<div id="io-scanf" class="slide section level1">
+<h1>IO scanf</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+  <span class="dt">char</span> str [<span class="dv">80</span>];
+  <span class="dt">int</span> i;
+
+  printf (<span class="st">&quot;Geben Sie Ihren Namen ein: &quot;</span>);
+  scanf (<span class="st">&quot;%s&quot;</span>,str);  <span class="co">// Referenzuebergabe via Pointer</span>
+  printf (<span class="st">&quot;Alter: &quot;</span>);
+  scanf (<span class="st">&quot;%d&quot;</span>,&amp;i);   <span class="co">// &amp; Operator liefert Pointer auf i  </span>
+  printf (<span class="st">&quot;%s ist %d Jahre alt.</span><span class="ch">\n</span><span class="st">&quot;</span>,str,i);
+  printf (<span class="st">&quot;Geben Sie ein hexadezimale Zahl ein: &quot;</span>);
+  scanf (<span class="st">&quot;%x&quot;</span>,&amp;i);  <span class="co">// Referenzuebergabe via Pointer</span>
+  printf (<span class="st">&quot;You have entered %#x (%d).</span><span class="ch">\n</span><span class="st">&quot;</span>,i,i);
+  
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="io-scanf-1" class="slide section level1">
+<h1>IO scanf</h1>
+<p>Referenzübergabe via Pointer</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">char</span> str [<span class="dv">80</span>];
+  <span class="dt">int</span> i;
+  scanf (<span class="st">&quot;%s&quot;</span>,str);
+  scanf (<span class="st">&quot;%d&quot;</span>,&amp;i); </code></pre></div>
+<ul>
+<li>Pointer = Adresse</li>
+<li><code>str</code> Pointer auf erstes Element</li>
+<li><code>&amp;i</code> Pointer auf <code>i</code></li>
+</ul>
+<p>Mehr Info</p>
+<p><a href="http://www.cplusplus.com/reference/clibrary/cstdio/scanf/" class="uri">http://www.cplusplus.com/reference/clibrary/cstdio/scanf/</a></p>
+</div>
+<div id="einfache-datentypen-char-int-und-float" class="slide section level1">
+<h1>Einfache Datentypen: Char, Int und Float</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+  <span class="co">// Ganzzahlig</span>
+  <span class="dt">char</span> c;  <span class="co">// 1 Byte</span>
+  <span class="dt">int</span> i;   <span class="co">// 2-4 Byte je nach Plattform</span>
+  <span class="co">// Gleitkomma</span>
+  <span class="dt">float</span> f;  <span class="co">// 4 Byte</span>
+  <span class="dt">double</span> d; <span class="co">// 8 Byte</span>
+
+  <span class="co">// Typoperatoren: short, long, unsigned</span>
+  <span class="dt">short</span> <span class="dt">int</span> i16;  <span class="co">// Immer 2 Byte</span>
+  <span class="dt">long</span> <span class="dt">int</span> i32;   <span class="co">// Immer 4 Byte</span>
+  <span class="dt">unsigned</span> <span class="dt">long</span> <span class="dt">int</span> u32; <span class="co">// Wertebereich 0 - 4294967295</span>
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="überlauf-und-genauigkeit" class="slide section level1">
+<h1>Überlauf und Genauigkeit</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">int</span> i;
+  <span class="dt">float</span> f;
+  i = <span class="dv">1294967295</span> - <span class="dv">3234</span>;
+  f = <span class="fl">0.</span>1f + <span class="fl">0.</span>2f;
+  <span class="kw">if</span> (f == <span class="fl">0.</span>3f) { ... }</code></pre></div>
+<ul>
+<li>Überlauf bei <code>Int</code></li>
+<li>Genauigkeit bei <code>Float</code></li>
+</ul>
+<p>Mehr Info</p>
+<p><a href="http://floating-point-gui.de/" class="uri">http://floating-point-gui.de/</a></p>
+<p><a href="http://realtimecollisiondetection.net/blog/?p=89" class="uri">http://realtimecollisiondetection.net/blog/?p=89</a></p>
+</div>
+<div id="typedef" class="slide section level1">
+<h1>Typedef</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="kw">typedef</span> <span class="dt">int</span> km_hour;       <span class="co">// typedef alterTyp neuerType;</span>
+<span class="kw">typedef</span> <span class="dt">short</span> <span class="dt">int</span> int16;
+
+<span class="dt">int</span> main () {
+  <span class="dt">int</span> i=<span class="dv">3</span>;  <span class="co">// m/second</span>
+  km_hour j=<span class="dv">4</span>;
+  i = j + i; <span class="co">// Unlogisch km/h und m/secs zu addieren</span>
+  
+  int16 k=<span class="dv">3</span>;
+  <span class="dt">short</span> <span class="dt">int</span> l;
+  l = <span class="dv">2</span> + k;     <span class="co">// typedefs sind nur Abkuerzungen !</span>
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<p><a href="http://en.wikipedia.org/wiki/Typedef" class="uri">http://en.wikipedia.org/wiki/Typedef</a></p>
+</div>
+<div id="konstanten" class="slide section level1">
+<h1>Konstanten</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+  <span class="dt">int</span> i;
+  <span class="dt">const</span> <span class="dt">int</span> k = <span class="dv">3</span>;
+  <span class="dt">const</span> <span class="dt">int</span> j;      <span class="co">// zufaellige Konstante</span>
+
+  i = <span class="dv">1</span>;
+  i = <span class="dv">2</span>;
+
+  <span class="co">// j = 3;  error read-only variable</span>
+  <span class="co">// k = 3;  error read-only variable</span>
+
+  printf(<span class="st">&quot;i=%d, j=%d, k=%d </span><span class="ch">\n</span><span class="st">&quot;</span>,i,j,k);
+  
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="c-hat-kein-boolean" class="slide section level1">
+<h1>C hat kein Boolean</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+  <span class="co">// C hat kein Boolean aber Integerausdruecke</span>
+  <span class="co">// haben eine Boolesche Interpretation</span>
+  <span class="dt">int</span> b=<span class="dv">1</span>;
+  <span class="kw">if</span>(b != <span class="dv">0</span>) 
+    printf(<span class="st">&quot;true&quot;</span>); 
+  <span class="kw">else</span> 
+    printf(<span class="st">&quot;false&quot;</span>);
+
+  b=<span class="dv">0</span>;
+  <span class="kw">if</span>(b)  <span class="co">// Integerausdruck ungleich 0 ist true</span>
+    printf(<span class="st">&quot;true&quot;</span>); 
+  <span class="kw">else</span>  <span class="co">// Integerausdruck gleich 0 ist false</span>
+    printf(<span class="st">&quot;false&quot;</span>); 
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="globale-und-lokale-variablen" class="slide section level1">
+<h1>Globale und lokale Variablen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="dt">int</span> i;    <span class="co">// globale Variablen</span>
+<span class="dt">char</span> c;
+<span class="dt">float</span> f;
+
+<span class="dt">int</span> main () {
+  <span class="dt">char</span> i = &#39;a&#39;;  <span class="co">// lokale Variablen im scope</span>
+  <span class="dt">int</span> c = <span class="dv">3</span>;     <span class="co">// der main Funktion</span>
+  <span class="dt">float</span> d = <span class="fl">1.1</span>;
+
+  f = d + <span class="fl">1.9</span>;
+
+  printf(<span class="st">&quot;i=%c, c=%d, f=%f </span><span class="ch">\n</span><span class="st">&quot;</span>,i,c,f);
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="arithmetische-ausdrücke" class="slide section level1">
+<h1>Arithmetische Ausdrücke</h1>
+<pre><code> 3 + 5   Addition
+ 3 - 5   Subtraktion
+ 3 * 5   Multiplikation
+ 3 / 5   Division
+ 3 % 5   Modulofunktion
+
+ -3      Negation</code></pre>
+<ul>
+<li>Operatoren auch mit Zuweisung kombinierbar</li>
+</ul>
+<pre><code>  +=, -=, *=, /= </code></pre>
+<ul>
+<li>Rangfolge wie gewohnt</li>
+</ul>
+<pre><code> 3 * 5 - 3</code></pre>
+</div>
+<div id="automatische-typkonvertierungen" class="slide section level1">
+<h1>Automatische Typkonvertierungen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+
+  <span class="co">// Bei Zuweisung konvertiere vom </span>
+  <span class="co">// einfacheren zum komplizierteren Typ: </span>
+  <span class="co">// char -&gt; short int -&gt; long int -&gt; float -&gt; double </span>
+  <span class="dt">float</span> x = <span class="dv">2</span>;
+
+  <span class="co">// Umgekehrt kann zu Datenverlust fuehren</span>
+  <span class="dt">int</span> i = -<span class="fl">2.3</span>;
+  printf(<span class="st">&quot;-2.3 und %d </span><span class="ch">\n</span><span class="st">&quot;</span>, i);
+  <span class="co">// -2.3 und -2 </span>
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="konvertierung-in-teilausdrücken" class="slide section level1">
+<h1>Konvertierung in (Teil)ausdrücken</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+
+  <span class="co">// Konvertierung in Ausdruecken. Vorsicht!</span>
+  <span class="dt">float</span> f1 = <span class="dv">18</span> / <span class="dv">10</span> * <span class="fl">1.5</span>; 
+  <span class="dt">float</span> f2 = <span class="fl">18.0</span> / <span class="fl">10.0</span> * <span class="fl">1.5</span>;
+  printf(<span class="st">&quot;f1=%f f2=%f </span><span class="ch">\n</span><span class="st">&quot;</span>,f1,f2);
+  <span class="co">// f1=1.500000 f2=2.700000</span>
+
+  <span class="co">// Jeder Teilausdruck wird fuer sich betrachtet, nur so</span>
+  <span class="co">// praezise wie noetig aufgrund der beteiligten Typen.</span>
+  <span class="co">// 18 / 10 --&gt; 1 </span>
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="explizite-typkonvertierung-cast" class="slide section level1">
+<h1>Explizite Typkonvertierung (Cast)</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+
+  <span class="dt">float</span> x = <span class="fl">340.2</span>;
+  <span class="dt">int</span> i = (<span class="dt">int</span>)x;  <span class="co">// erzwinge Typkonvertierung</span>
+  printf(<span class="st">&quot;i=%d </span><span class="ch">\n</span><span class="st">&quot;</span>,i);
+
+  <span class="dt">char</span> c1 = (<span class="dt">char</span>)i;
+  <span class="dt">char</span> c2 = (<span class="dt">int</span>)x; <span class="co">// implizite automatische Konvertierung</span>
+  printf(<span class="st">&quot;c1=%c c2=%c </span><span class="ch">\n</span><span class="st">&quot;</span>,c1,c2);
+
+  <span class="dt">float</span> f1 = (<span class="dt">float</span>)(<span class="dv">18</span>) / (<span class="dt">float</span>)(<span class="dv">10</span>) * <span class="fl">1.5</span>; 
+  <span class="dt">float</span> f2 = <span class="fl">18.0</span> / <span class="fl">10.0</span> * <span class="fl">1.5</span>;
+  printf(<span class="st">&quot;f1=%f f2=%f </span><span class="ch">\n</span><span class="st">&quot;</span>,f1,f2);
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="logische-ausdrücke" class="slide section level1">
+<h1>Logische Ausdrücke</h1>
+<pre><code>    &amp;&amp;    AND      if (i&gt;=0 &amp;&amp; i&lt;6) { } 
+    ||    OR       if (i&lt;0 ||  i&gt;=6) { } 
+    !     NOT      if (!i) { }</code></pre>
+<p>Vergleichsoperatoren sind Boolesche Werte:</p>
+<pre><code>    &lt;, &gt;, ==, !=, &lt;=, &gt;=</code></pre>
+</div>
+<div id="bit-operationen" class="slide section level1">
+<h1>Bit-Operationen</h1>
+<pre><code>    &amp;     bitweises AND 
+    |     bitweises OR 
+    ^     bitweise XOR (exklusiv oder) 
+    ~     bitweise Komplement (Negation)
+    &lt;&lt;n   bitweise links um n Positionen schieben 
+          (0 nachschieben) 
+    &gt;&gt;n   bitweise rechts um n Positionen schieben 
+          (0 nachschieben)</code></pre>
+</div>
+<div id="bit-operationen-beispiele" class="slide section level1">
+<h1>Bit-Operationen Beispiele</h1>
+<ul>
+<li>bitweises AND/OR</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th align="left">.</th>
+<th align="left">B7</th>
+<th align="left">B6</th>
+<th align="left">B5</th>
+<th align="left">B4</th>
+<th align="left">B3</th>
+<th align="left">B2</th>
+<th align="left">B1</th>
+<th align="left">B0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">x</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="left">y</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+</tr>
+<tr class="odd">
+<td align="left">x&amp;y</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="left">x|y</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>bitweises links schieben</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th align="left">.</th>
+<th align="left">B7</th>
+<th align="left">B6</th>
+<th align="left">B5</th>
+<th align="left">B4</th>
+<th align="left">B3</th>
+<th align="left">B2</th>
+<th align="left">B1</th>
+<th align="left">B0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">x</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+</tr>
+<tr class="even">
+<td align="left">x&lt;&lt;2</td>
+<td align="left">1</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">0</td>
+<td align="left">1</td>
+<td align="left">0</td>
+<td align="left">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="bit-operationen-anwendungen" class="slide section level1">
+<h1>Bit-Operationen Anwendungen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+  <span class="dt">unsigned</span> <span class="dt">short</span> <span class="dt">int</span> x = <span class="dv">8</span>; <span class="co">// 16bit Hardwareregister</span>
+  <span class="dt">int</span> i = <span class="dv">3</span>;            <span class="co">// Bitposition</span>
+
+  <span class="co">// Pruefen, ob Bit i gesetzt ist: </span>
+  <span class="kw">if</span> (x &amp; (<span class="dv">1</span>&lt;&lt;i)) {printf(<span class="st">&quot;bit %d in x gesetzt</span><span class="ch">\n</span><span class="st">&quot;</span>,i);};
+  <span class="co">// Setzen von Bit i ohne Veraenderung der uebrigen Bits:</span>
+  x = x |(<span class="dv">1</span>&lt;&lt;i); 
+  <span class="co">// Ruecksetzen von Bit i ohne Veraenderung:</span>
+   x = x &amp; ~(<span class="dv">1</span>&lt;&lt;i); 
+   <span class="co">// Negieren (&quot;kippen&quot;, &quot;toggeln&quot;) von Bit i </span>
+   <span class="co">// ohne Veraenderung:</span>
+   x = x ^(<span class="dv">1</span>&lt;&lt;i); 
+
+   <span class="kw">return</span> <span class="dv">0</span>;
+} </code></pre></div>
+</div>
+<div id="bedingte-anweisungen" class="slide section level1">
+<h1>Bedingte Anweisungen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+
+  <span class="kw">if</span> (i&lt;<span class="dv">10</span>) { <span class="co">// If Anweisung</span>
+     printf(<span class="st">&quot;i kleiner 10! </span><span class="ch">\n</span><span class="st">&quot;</span>);
+  } <span class="kw">else</span> {
+      printf(<span class="st">&quot;i groesser 9! </span><span class="ch">\n</span><span class="st">&quot;</span>);
+  }
+  <span class="kw">switch</span> (i) { <span class="co">// Fallunterscheidung</span>
+        <span class="kw">case</span> <span class="dv">1</span>: printf(<span class="st">&quot;Fall 1</span><span class="ch">\n</span><span class="st">&quot;</span>);
+                <span class="kw">break</span>;
+        <span class="kw">case</span> <span class="dv">5</span>: printf(<span class="st">&quot;Fall 5</span><span class="ch">\n</span><span class="st">&quot;</span>);
+                <span class="kw">break</span>;
+        <span class="kw">default</span>: printf(<span class="st">&quot;restliche Faelle</span><span class="ch">\n</span><span class="st">&quot;</span>);
+  }
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<h2 id="kurzschlussauswertung-short-circuit-evaluation">Kurzschlussauswertung (&quot;short-circuit evaluation&quot;)</h2>
+<p>Betrachte folgendes Programmfragment.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">if</span>(n !=<span class="dv">0</span> &amp;&amp; m / n &gt; <span class="dv">0</span>) { ... }</code></pre></div>
+<p>Die Reihenfolge der Operanden ist wichtig!</p>
+<p>Falls <code>n !=0' falsch, wird die folgenden Operanden nicht mehr ausgewertet. Sprich, ein bedingter Ausdruck mit einer Sequenz von mit</code>&amp;&amp;` verketteten Operanden entspricht einer Programmsequenz von verschachtelten bedingten Ausdrücken.</p>
+<p>Obiges Programmfragment entspricht.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">if</span>(n !=<span class="dv">0</span>) {
+  <span class="kw">if</span>(m / n &gt; <span class="dv">0</span>) { ... }
+}</code></pre></div>
+<p>Eine ähnliche &quot;Kurzschlussausertungs Regel&quot; gilt für eine mit <code>||</code> verkettete Sequenz von Operanden. In diesem Fall bricht die Auswertung ab (wird kurzgeschlossen), sobald einer der Operanden wahr ist.</p>
+</div>
+<div id="bedingter-ausdruck" class="slide section level1">
+<h1>Bedingter Ausdruck</h1>
+<pre><code>cond ? thenExp : elseExp</code></pre>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+  <span class="dt">int</span> a=<span class="dv">1</span>,b=<span class="dv">2</span>,z;
+
+  <span class="kw">if</span> (a&gt;b) 
+    z=a;
+  <span class="kw">else</span> z=b;
+
+  z = (a &gt; b) ? a : b;    <span class="co">// z = max(a, b) </span>
+
+  printf(<span class="st">&quot;a=%d, b=%d, z=%d </span><span class="ch">\n</span><span class="st">&quot;</span>,a,b,z);  
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="schleifen" class="slide section level1">
+<h1>Schleifen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+    <span class="dt">int</span> i;
+    <span class="kw">for</span> (i=<span class="dv">0</span>; i&lt;<span class="dv">5</span>; i++) { <span class="co">// For Schleife</span>
+        printf(<span class="st">&quot;Hallo Welt for %d </span><span class="ch">\n</span><span class="st">&quot;</span>,i);
+    }
+    i = <span class="dv">0</span>;
+    <span class="kw">while</span> (i&lt;<span class="dv">5</span>) { <span class="co">// While Schleife</span>
+        printf(<span class="st">&quot;Hallo Welt while %d </span><span class="ch">\n</span><span class="st">&quot;</span>,i);
+        i++;
+    }
+    i = <span class="dv">0</span>;
+    <span class="kw">do</span> { <span class="co">// Do-While Schleife</span>
+        printf(<span class="st">&quot;Hallo Welt do-while %d </span><span class="ch">\n</span><span class="st">&quot;</span>,i);
+        i++;
+    } <span class="kw">while</span> (i&lt;<span class="dv">5</span>);
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<h2 id="break-und-continue"><code>break</code> und <code>continue</code></h2>
+<p><code>break</code>: Abbruch und Ausstieg aus der Schleife.</p>
+<p><code>continue</code>: Abbruch und Fortführung der Schleife.</p>
+<p>Betrachte folgendes Beispiel.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> i = <span class="dv">0</span>;
+
+  <span class="kw">while</span> (<span class="dv">1</span>) {
+
+    <span class="kw">if</span>(i &gt;= <span class="dv">40</span>) {
+      <span class="kw">break</span>;
+    }
+
+    i++;
+
+    <span class="kw">if</span>(i &gt;= <span class="dv">30</span>) {
+      <span class="kw">continue</span>;
+    }
+
+    printf(<span class="st">&quot;</span><span class="ch">\n</span><span class="st"> i = %d&quot;</span>, i);
+
+  }
+
+  printf(<span class="st">&quot;</span><span class="ch">\n</span><span class="st"> Ende: i = %d&quot;</span>, i);
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="enumerationen" class="slide section level1">
+<h1>Enumerationen</h1>
+<p><em>Mengen von endlichen Elementen</em></p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">enum</span> Wochentag {
+  Mo=<span class="dv">0</span>,
+  Di=<span class="dv">1</span>,
+  Mi=<span class="dv">2</span>,
+  Do=<span class="dv">3</span>,
+  Fr=<span class="dv">4</span>,
+  Sa=<span class="dv">5</span>,
+  So=<span class="dv">6</span>
+};
+
+<span class="kw">enum</span> Wochentag wt = Mo;</code></pre></div>
+<ul>
+<li>Abbildung von Bezeichner auf Integer Werte</li>
+<li>Abbildung optional, Compiler verwendet aufsteigende Nummerierung</li>
+<li><code>Wochentag</code> beschreibt eine Menge von Bezeichnern</li>
+<li><code>wt</code> enthält eines der Elemente in der Menge</li>
+</ul>
+</div>
+<div id="enumerationen-beispiel" class="slide section level1">
+<h1>Enumerationen Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> main () { 
+  <span class="kw">enum</span> Wochentag wt = Mo;
+  <span class="kw">switch</span>(wt) {
+   <span class="kw">case</span> Mo: printf(<span class="st">&quot;Montag </span><span class="ch">\n</span><span class="st">&quot;</span>);
+            <span class="kw">break</span>;
+    <span class="kw">default</span>: printf(<span class="st">&quot;andere Tage </span><span class="ch">\n</span><span class="st">&quot;</span>);
+  };
+
+}</code></pre></div>
+</div>
+<div id="enumerationen-in-c-versus-c" class="slide section level1">
+<h1>Enumerationen in C versus C++</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">enum</span> Wochentag wt = <span class="dv">2</span>;
+<span class="dt">int</span> i = Do;</code></pre></div>
+<ul>
+<li>Schwache Typisierung</li>
+<li>Obiges Programm wird ohne Warnung akzeptiert</li>
+<li>Starke Typisierung in C++</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="kw">enum</span> Wochentag w2 = <span class="dv">5</span>; <span class="co">// ok in C </span>
+  <span class="kw">enum</span> Wochentag w2 = Wochentag(<span class="dv">5</span>); <span class="co">// ok in C++</span>
+  Wochentag wt2 = Wochentag(<span class="dv">4</span>); <span class="co">// ok in C++ </span></code></pre></div>
+<ul>
+<li>Vergleich enums in C und C++</li>
+</ul>
+<p><a href="http://www.cprogramming.com/tutorial/c-vs-c++.html" class="uri">http://www.cprogramming.com/tutorial/c-vs-c++.html</a></p>
+</div>
+<div id="strukturen" class="slide section level1">
+<h1>Strukturen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">struct</span> position {
+  <span class="dt">int</span> x;
+  <span class="dt">float</span> y;
+};
+
+<span class="dt">int</span> main () { 
+  <span class="kw">struct</span> position p = {<span class="dv">1</span>,<span class="fl">3.0</span>};                 <span class="co">// Initialisierung</span>
+  printf(<span class="st">&quot;position (%d,fd) </span><span class="ch">\n</span><span class="st">&quot;</span>,p.x,p.y);       <span class="co">// Zugriff</span>
+ <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<ul>
+<li>&quot;Primitive öffentliche Klasse ohne Vererbung und Methoden&quot;
+<ul>
+<li>In C++, &quot;struct = public class&quot;</li>
+</ul></li>
+<li>Zugriff via &quot;Dot Notation&quot;</li>
+</ul>
+<!-- http://www.thegeekstuff.com/2011/12/c-arrays/ -->
+</div>
+<div id="arrays" class="slide section level1">
+<h1>Arrays</h1>
+<ul>
+<li>Sequenz von Elementen vom gleichen Typ</li>
+<li>Array mit 4 Elementen</li>
+</ul>
+<pre><code>+===================================================+
+| elem1     |  elem2      | elem3      | elem4      |
++===================================================+</code></pre>
+<ul>
+<li><code>int iArr[4]</code>
+<ul>
+<li>Array mit 4 <code>int</code> Elementen</li>
+<li>Zugriff auf Elemente via <code>iArr[index]</code>
+<ul>
+<li>Erstes Element <code>iArr[0]</code></li>
+<li>Letztes Element <code>iArr[3]</code></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<div id="initialisierung-von-arrays" class="slide section level1">
+<h1>Initialisierung von Arrays</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">int</span> b[<span class="dv">10</span>];
+  <span class="dt">int</span> i;
+  <span class="kw">for</span>(i=<span class="dv">0</span>; i&lt;<span class="dv">10</span>; i++) b[i] = i;
+
+  <span class="dt">int</span> a[] = {<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>};
+
+  <span class="dt">char</span> s1[] = {&#39;c&#39;,&#39;o&#39;,&#39;d&#39;,&#39;e&#39;,&#39;\<span class="dv">0</span>&#39;};
+
+  <span class="dt">char</span> s2[] = <span class="st">&quot;code&quot;</span>;</code></pre></div>
+<ul>
+<li>Initialisierung jedes Elements einzeln</li>
+<li>Initialisierung gesamtes Array bei Deklaration (Länge inferriert)</li>
+<li>String = Array von Zeichen</li>
+<li>Das Ende des Strings wir gekennzeichnet durch das Nullterminator Zeichen</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">`\<span class="dv">0</span>`</code></pre></div>
+<ul>
+<li><code>s2</code> hat Länge 5!</li>
+</ul>
+</div>
+<div id="array-zugriff-ohne-bereichsüberprüfung" class="slide section level1">
+<h1>Array Zugriff ohne Bereichsüberprüfung</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () { 
+  <span class="dt">int</span> a[<span class="dv">10</span>] = {<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">6</span>,<span class="dv">7</span>,<span class="dv">8</span>,<span class="dv">9</span>}; <span class="co">// Initialisierung</span>
+  <span class="dt">int</span> i;
+
+  <span class="kw">for</span>(i=<span class="dv">0</span>; i&lt;<span class="dv">11</span>; i++) {
+    printf(<span class="st">&quot;a[%d]=%d &quot;</span>,i,a[i]); 
+    <span class="co">// Keine Bereichsueberpruefung!</span>
+  }
+  printf(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>);
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<ul>
+<li>Kein (Laufzeit)Check ob in <code>a[i]</code> der Index <code>i</code> innerhalb der Arraygrenzen liegt</li>
+</ul>
+</div>
+<div id="arrays-und-strukturen" class="slide section level1">
+<h1>Arrays und Strukturen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="kw">struct</span> position {
+  <span class="dt">int</span> x;
+  <span class="dt">float</span> y;
+};
+
+<span class="dt">int</span> main () { 
+  <span class="kw">struct</span> position ps[<span class="dv">2</span>] = { {<span class="dv">2</span>,<span class="fl">4.0</span>}, {<span class="dv">1</span>,<span class="fl">3.0</span>} };
+  <span class="dt">int</span> i;
+
+  <span class="kw">for</span>(i=<span class="dv">0</span>; i&lt;<span class="dv">2</span>; i++) {
+    printf(<span class="st">&quot;ps[%d].x=%d &quot;</span>,i,ps[i].x); 
+  }
+
+ <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="mehrdimensionale-arrays" class="slide section level1">
+<h1>Mehrdimensionale Arrays</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () { 
+  <span class="dt">int</span> a[<span class="dv">3</span>][<span class="dv">2</span>] = { {<span class="dv">0</span>,<span class="dv">1</span>},{<span class="dv">2</span>,<span class="dv">3</span>},{<span class="dv">4</span>,<span class="dv">5</span>}}; <span class="co">// Initialisierung</span>
+  <span class="co">// Oder {0,1,2,3,4,5}</span>
+  <span class="co">// sprich hintereinander im Speicher</span>
+  <span class="dt">int</span> i,j;
+
+  <span class="kw">for</span>(i=<span class="dv">0</span>; i&lt;<span class="dv">3</span>; i++) {
+    <span class="kw">for</span>(j=<span class="dv">0</span>; j&lt;<span class="dv">2</span>; j++)
+      printf(<span class="st">&quot;a[%d,%d]=%d &quot;</span>,i,j,a[i][j]); 
+    printf(<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>);
+  }
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<ul>
+<li>a[Reihe][Spalte]</li>
+<li><code>int b[3][4][5]</code> ...</li>
+</ul>
+</div>
+<div id="typbezeichner-type-qualifier" class="slide section level1">
+<h1>Typbezeichner (&quot;Type Qualifier&quot;)</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">signed</span>, <span class="dt">unsigned</span>, <span class="dt">long</span>, <span class="dt">short</span>, <span class="dt">long</span> <span class="dt">long</span>, <span class="dt">const</span>, 
+<span class="dt">volatile</span>, <span class="dt">static</span>, <span class="dt">auto</span>, <span class="kw">extern</span>, <span class="dt">register</span></code></pre></div>
+<ul>
+<li><p>Speicherklassen: <code>static</code>, <code>auto</code>, <code>extern</code>, <code>register</code></p></li>
+<li><p>Konstante: <code>const</code></p></li>
+<li><p>Vorzeichen: <code>signed</code>, <code>unsigned</code></p></li>
+<li><p>Genaugigkeit: <code>long</code>, <code>short</code>, <code>long long</code></p></li>
+<li><p><code>volatile</code> verhindert Optimierung (z.B. Speicherung Variable in Register)</p></li>
+</ul>
+</div>
+<div id="varianten" class="slide section level1">
+<h1>Varianten</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">union</span> u {
+  <span class="dt">int</span> x;
+  <span class="dt">float</span> y;
+};</code></pre></div>
+<ul>
+<li>Alle Komponenten benutzen die gleiche Speicherzelle.</li>
+<li>Typische Anwendung:
+<ul>
+<li>Wenn Speicher knapp ist (zuerst benutze int danach float)</li>
+<li>Verschieden Interpretation von Bitmustern (Typkonvertierungen)</li>
+</ul></li>
+</ul>
+</div>
+<div id="zusammenfassung-c-teil-1" class="slide section level1">
+<h1>Zusammenfassung: C Teil 1</h1>
+<ul>
+<li>main Programm</li>
+<li>IO (printf, scanf)</li>
+<li>Einfache Datentypen (char, int, float, double), const und typedef</li>
+<li>Arithmetische/Logische Ausdrücke und Bitoperationen</li>
+<li>Überlauf und Genauigkeit</li>
+<li>Typkonvertierungen (automatisch, cast)</li>
+<li>Kontrollstrukturen (Bedingte Anweisungen und Schleifen, bedingter Ausdruck)</li>
+<li>Komplexe Datenstrukturen</li>
+</ul>
+</div>
+</body>
+</html>

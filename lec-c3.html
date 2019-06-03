@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Martin Sulzmann" />
+  <title>Einführung in C - Teil 3</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Einführung in C - Teil 3</h1>
+  <p class="author">
+Martin Sulzmann
+  </p>
+</div>
+<div id="inhalt" class="slide section level1">
+<h1>Inhalt</h1>
+<ul>
+<li>Speicher
+<ul>
+<li>Wo liegt was?</li>
+<li>Stack versus Heap</li>
+<li>Manuelle Speicherverwaltung des Heaps</li>
+</ul></li>
+<li>Zeiger (&quot;pointer&quot;)
+<ul>
+<li>Typsicherer Zugriff auf Speicheradressen</li>
+</ul></li>
+</ul>
+<!-- http://www.thegeekstuff.com/2011/12/c-pointers-fundamentals/ -->
+</div>
+<div id="motivation" class="slide section level1">
+<h1>Motivation</h1>
+<p>In C kann die Fibonacci Funktion wie folgt ausgedrückt werden.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> fib(<span class="dt">int</span> n){
+ <span class="dt">int</span> f1, f2;
+ <span class="kw">if</span> (n&lt;=<span class="dv">1</span>) <span class="kw">return</span> <span class="dv">1</span>;
+ f1=fib(n<span class="dv">-1</span>);
+ f2=fib(n<span class="dv">-2</span>);
+ <span class="kw">return</span> f1+f2;
+}</code></pre></div>
+<p>Was ergibt der Aufruf <code>fib(3)</code>? Wie geschieht der Zugriff auf lokale Variablen wie <code>f1</code>. Wo liegen diese Variablen im Speicher?</p>
+<p>Die Funktionsaufrufabfolge kann durch einen Stack simuliert werden. Das Laufzeitsystem benutzt einen Run-Time Stack zur Verwaltung von Funktionsaufrufen Dieser Run-Time Stack kann mittels Debugger beobachtet werden</p>
+<p>Aufgabe: Setzen Sie geignete <code>break points</code> und verfolgen Sie die Berechung von <code>fib(3)</code>.</p>
+<h2 id="run-time-stack-und-heap">Run-Time Stack und Heap</h2>
+<p>Der Speicherbereich bei der Ausführung des Programmes ist wie folgt aufgeteilt.</p>
+<pre><code> CODE
+ STATIC DATA
+ STACK
+ ...
+ HEAP</code></pre>
+<ul>
+<li>CODE enthält den übersetzten und gelinkten Source Code</li>
+<li>STATIC DATA enthält alle statischen Datenanteile</li>
+<li>STACK ist der Speicherbereich für lokale Daten (Variablen definiert in Funktionen, Funktionsparameter und Rückgabewerte)</li>
+<li>HEAP ist der Speicherbereich für dynamische Daten, die explizt vom Programm allokiert werden</li>
+<li>STACK und HEAP befinden sich in der Regel an gegenseitigen Enden des Speicherbereichs (wo genau hängt von Compiler/Platform ab). Beide Bereiche wachsen und schrumpfen zur Laufzeit.</li>
+</ul>
+<p>Der STACK Speicherbereich wird <em>automatisch</em> verwaltet (durch das Laufzeit/Run-Time System):</p>
+<ul>
+<li><p>Solange die Funktion aktiv ist, ist der von der Funktion belegte Stackbereich aktiv.</p></li>
+<li><p>Sobald die Funktion verlassen wird, wird der von der Funktion belegte Stackbereich &quot;deaktiviert&quot;. Dies bedeutet, der Speicherbereich kann anderweitig verwendet werden.</p></li>
+</ul>
+<p>In C unterliege der HEAP Speicherbereich der Kontrolle des Programmieres (<em>manuelle</em> Verwaltung). Heapspeicher muss explizit angefordert werden via malloc (new in C++) und explizit freigegeben werden via free (delete in C++).</p>
+<h2 id="speicheradressen-und-run-time-stack">Speicheradressen und Run-Time Stack</h2>
+<p>Folgende Variante der Fibonacci Implementierung, erlaubt es uns zu beobachten an welchem Ende des Speichers sich der Stack befindet.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> fib2(<span class="dt">int</span> n) {
+ <span class="dt">int</span> f1, f2;
+ <span class="dt">int</span>* nPtr;
+ printf(<span class="st">&quot;fib2(%d)</span><span class="ch">\n</span><span class="st">&quot;</span>,n);
+ nPtr = &amp;n;
+ printf(<span class="st">&quot;&amp;n = %ld </span><span class="ch">\n</span><span class="st">&quot;</span>,(<span class="dt">long</span> <span class="dt">int</span>)nPtr);
+ <span class="kw">if</span> (n&lt;=<span class="dv">1</span>) <span class="kw">return</span> <span class="dv">1</span>;
+ f1=fib2(n<span class="dv">-1</span>);
+ f2=fib2(n<span class="dv">-2</span>);
+ <span class="kw">return</span> f1+f2;
+}</code></pre></div>
+<ul>
+<li><code>&amp;n</code> liefert Adresse der Variable <code>n</code></li>
+<li>Dargestellt durch Pointer auf einen <code>int</code> Wert.</li>
+<li>Zur Ausgabe wird der Pointer in einen <code>long int</code> Wert gecastet</li>
+</ul>
+</div>
+<div id="zeigerpointer" class="slide section level1">
+<h1>Zeiger/Pointer</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">unsigned</span> <span class="dt">short</span> <span class="dt">int</span> x = <span class="dv">2</span>;</code></pre></div>
+<ul>
+<li><p>Variable vom Typ <code>unsigned short int</code> gefüllt mit Wert <code>2</code></p></li>
+<li><p>Wo findet sich der Wert?</p></li>
+<li><p>Irgendwo im Speicher, z.B. an der Adresse 4711</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">      -------------------
+<span class="dv">4711</span>  |<span class="bn">00000000</span>|<span class="bn">00000010</span>|
+      __________________  </code></pre></div>
+<ul>
+<li>In C/C++ Zugriff auf Speicherbereich via Zeiger (Pointer)</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">unsigned</span> <span class="dt">short</span> <span class="dt">int</span> i;
+  <span class="dt">unsigned</span> <span class="dt">short</span> <span class="dt">int</span>* iPtr;</code></pre></div>
+<ul>
+<li><code>i</code> ist eine Variable vom Typ <code>unsigned short int</code>
+<ul>
+<li><code>i</code> speichert <code>unsigned short int</code> Werte</li>
+<li><code>i</code> benötigt 2 Bytes Speicher</li>
+</ul></li>
+<li><code>iPtr</code> ist eine Variable vom Type <code>unsigned short int*</code>
+<ul>
+<li><code>iPtr</code> speichert Adressen von <code>unsigned short int</code> Variablen</li>
+<li><code>iPtr</code> benötigt 4 Bytes Speicher (32Bit Architektur)</li>
+</ul></li>
+<li>Umgangssprachlich
+<ul>
+<li><code>iPtr</code> ist ein <code>unsigned short int</code> Pointer</li>
+</ul></li>
+</ul>
+</div>
+<div id="zeigerpointer-2" class="slide section level1">
+<h1>Zeiger/Pointer (2)</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">unsigned</span> <span class="dt">short</span> <span class="dt">int</span> i;
+  <span class="dt">unsigned</span> <span class="dt">short</span> <span class="dt">int</span>* iPtr;
+  <span class="dt">int</span> j;
+  <span class="dt">int</span>* jPtr;
+  <span class="dt">float</span> f;
+  <span class="dt">float</span>* fPtr;</code></pre></div>
+<ul>
+<li><code>iPtr</code>, <code>jPtr</code> und <code>fPtr</code> sind Zeiger</li>
+<li>Werte von Zeigern sind Adressen (4 Bytes gross auf 32Bit Architektur)</li>
+<li>Durch Typdeklaration <code>int*</code> wissen wir welche Werte an dieser Adresse stehen</li>
+</ul>
+</div>
+<div id="zeiger-initialisierung" class="slide section level1">
+<h1>Zeiger Initialisierung</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">int</span> i = <span class="dv">0</span>;
+  <span class="dt">int</span>* iPtr = &amp;i;</code></pre></div>
+<ul>
+<li><code>i</code> initialisiert mit <code>0</code></li>
+<li>Werte von <code>iPtr</code> sind Adressen</li>
+<li><code>&amp;</code> Adressoperator</li>
+<li><code>&amp;i</code> liefert die Adresse von <code>i</code></li>
+</ul>
+</div>
+<div id="zeiger-zugriff" class="slide section level1">
+<h1>Zeiger Zugriff</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">int</span> i = <span class="dv">0</span>;
+  <span class="dt">int</span>* iPtr = &amp;i;
+
+  i = *iPtr;
+
+  *iPtr = i + <span class="dv">3</span>;
+
+  iPtr = (<span class="dt">int</span>*) i;</code></pre></div>
+<ul>
+<li><code>*</code> Verweisoperator (Derefenzierung)</li>
+<li><code>*iPtr</code> liefert Variable auf die <code>iPtr</code> verweist</li>
+<li>Kann links oder rechts von Zuweisung verwendet werden</li>
+<li><code>int</code> Werte können als Adressen interpretiert werden (gefählich!)</li>
+</ul>
+</div>
+<div id="zeiger-beispiel" class="slide section level1">
+<h1>Zeiger Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () {
+  <span class="dt">int</span> i = <span class="dv">1</span>;
+  <span class="dt">int</span>* iPtr;
+
+  printf(<span class="st">&quot;i=%d </span><span class="ch">\n</span><span class="st">&quot;</span>, i);  
+
+  printf(<span class="st">&quot;Adresse von i = %ld </span><span class="ch">\n</span><span class="st">&quot;</span>, (<span class="dt">long</span> <span class="dt">int</span>)&amp;i); 
+  
+  iPtr = &amp;i; 
+
+  printf(<span class="st">&quot;i=%d </span><span class="ch">\n</span><span class="st">&quot;</span>,*iPtr);
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="zeiger-arithmetik" class="slide section level1">
+<h1>Zeiger Arithmetik</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">int</span> i = <span class="dv">0</span>;
+  <span class="dt">int</span>* iPtr = &amp;i;
+
+  i++;
+  iPtr++;
+  i = i + <span class="dv">5</span>;
+  iPtr = iPtr + <span class="dv">5</span>;</code></pre></div>
+<ul>
+<li><code>iPtr++</code> inkrementiere Zeiger
+<ul>
+<li><code>iPtr</code> = Adresse X</li>
+<li>Nach Ausführung <code>iPtr++</code><br />
+</li>
+<li><code>iPtr</code> = Adresse X + sizeof(int)</li>
+</ul></li>
+<li><code>iPtr = iPtr + 5</code>
+<ul>
+<li><code>iPtr</code> = Adresse Y</li>
+<li>Nach Ausführung</li>
+<li><code>iPtr</code> = Adresse Y + 5 * sizeof(int)</li>
+</ul></li>
+</ul>
+</div>
+<div id="zeiger-arithmetik-2" class="slide section level1">
+<h1>Zeiger Arithmetik (2)</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">int</span> i = <span class="dv">0</span>;         <span class="co">// 1.</span>
+  <span class="dt">int</span>* iPtr = &amp;i;    <span class="co">// 2.</span>
+
+  i++;               <span class="co">// 3.</span>
+  iPtr++;            <span class="co">// 4.</span>
+  i = i + <span class="dv">5</span>;         <span class="co">// 5.</span>
+  iPtr = iPtr + <span class="dv">5</span>;   <span class="co">// 6.</span></code></pre></div>
+<p>Byte-weise Adressierung, <code>int</code> der Größe 2 Bytes</p>
+<ol style="list-style-type: decimal">
+<li>Variable <code>i</code> hat den Wert <code>0</code>
+<ul>
+<li>Annahme: Speicher der Variable <code>i</code> an Adresse <code>1602</code></li>
+</ul></li>
+<li>Variable <code>iPtr</code> hat den Wert <code>1602</code></li>
+<li>Variable <code>i</code> hat den Wert <code>1</code></li>
+<li>Variable <code>iPtr</code> hat den Wert <code>1604</code>
+<ul>
+<li>Zähle um ein <code>int</code> Element hoch, also zwei Bytes</li>
+</ul></li>
+<li>Variable <code>i</code> hat den Wert <code>6</code></li>
+<li>Variable <code>iPtr</code> hat den Wert <code>1614</code>
+<ul>
+<li>Zähle um fünf <code>int</code> Element hoch, also 10 Bytes</li>
+</ul></li>
+</ol>
+</div>
+<div id="zeiger-arithmetik-allgemein" class="slide section level1">
+<h1>Zeiger Arithmetik Allgemein</h1>
+<ul>
+<li><code>T* ptr</code></li>
+<li><code>ptr</code> = Adresse Z</li>
+<li><code>ptr + 7</code></li>
+<li>Adresse Z + 7 * sizeof(T)</li>
+</ul>
+</div>
+<div id="zeiger-arithmetik-beispiel" class="slide section level1">
+<h1>Zeiger Arithmetik Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> i = <span class="dv">0</span>;
+  <span class="dt">int</span>* iPtr = &amp;i;
+
+  printf(<span class="st">&quot; %d %ld </span><span class="ch">\n</span><span class="st">&quot;</span>, i, (<span class="dt">long</span> <span class="dt">int</span>)iPtr);
+  i++;
+  iPtr++;
+  printf(<span class="st">&quot; %d %ld </span><span class="ch">\n</span><span class="st">&quot;</span>, i, (<span class="dt">long</span> <span class="dt">int</span>)iPtr);  
+  i = i + <span class="dv">5</span>;
+  iPtr = iPtr + <span class="dv">5</span>;
+  printf(<span class="st">&quot; %d %ld </span><span class="ch">\n</span><span class="st">&quot;</span>, i, (<span class="dt">long</span> <span class="dt">int</span>)iPtr);  
+}</code></pre></div>
+<ul>
+<li>Ausgabe?</li>
+</ul>
+</div>
+<div id="zeiger-und-arrays" class="slide section level1">
+<h1>Zeiger und Arrays</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> a[<span class="dv">5</span>] = { <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> };
+  <span class="dt">int</span>* ptr;
+  ptr = &amp;a[<span class="dv">0</span>];
+  ptr++;
+  printf(<span class="st">&quot;%d </span><span class="ch">\n</span><span class="st">&quot;</span>,*ptr);
+}</code></pre></div>
+<ul>
+<li><code>int a[5]</code></li>
+<li><code>a</code> Array von 5 <code>int</code> Elementen</li>
+<li><code>&amp;a[0]</code> ist der Zeiger auf erstes Element</li>
+</ul>
+<p>Konvention</p>
+<ul>
+<li>Array-Variable <code>a</code> repräsentiert Zeiger auf erstes Element</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> a[<span class="dv">5</span>] = { <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span> };
+  <span class="dt">int</span>* ptr;
+  ptr = a;
+  ptr++;
+  printf(<span class="st">&quot;%d </span><span class="ch">\n</span><span class="st">&quot;</span>,*ptr);
+}</code></pre></div>
+</div>
+<div id="zeiger-und-arrays-beispiel" class="slide section level1">
+<h1>Zeiger und Arrays Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () { 
+  <span class="dt">int</span> i;
+  <span class="dt">int</span> a[<span class="dv">5</span>]{<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>}; 
+  <span class="dt">int</span>* ptr;
+
+  <span class="co">// Array Name bezeichnet Adresse des ersten Elements</span>
+  ptr = a
+  <span class="kw">for</span>(i=<span class="dv">1</span>; i&lt;<span class="dv">5</span>; i++) {
+    printf(<span class="st">&quot;%d &quot;</span>,*ptr); 
+    ptr++; 
+  }
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<ul>
+<li><p>Ausgabe?</p></li>
+<li>Aufgabe: Umformulierung als <code>while</code> Schleife ohne Laufvariable <code>i</code></li>
+<li><p>Beachte: <code>a</code> äquivalent zu <code>&amp;a[0]</code></p></li>
+</ul>
+<h2 id="mehrdimensionale-arrays">Mehrdimensionale Arrays</h2>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main () { 
+  <span class="dt">int</span> i;
+  <span class="dt">int</span> a[<span class="dv">3</span>][<span class="dv">2</span>] = { {<span class="dv">0</span>,<span class="dv">1</span>},{<span class="dv">2</span>,<span class="dv">3</span>},{<span class="dv">4</span>,<span class="dv">5</span>}}; 
+  <span class="dt">int</span>* ptr;
+
+  ptr = &amp;a[<span class="dv">0</span>][<span class="dv">0</span>];
+  <span class="kw">for</span>(i=<span class="dv">1</span>; i&lt;<span class="dv">7</span>; i++) {
+    printf(<span class="st">&quot;%d &quot;</span>,*ptr); 
+    ptr++; 
+  }
+
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="zeiger---am-beispiel-der-referenzübergabe" class="slide section level1">
+<h1>Zeiger - Am Beispiel der Referenzübergabe</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="ot">#define CallByRef(t,x) t* x</span>
+
+<span class="ot">#define DeRef(x) *x</span>
+
+<span class="ot">#define PassByRef(x) &amp;x</span>
+
+
+
+
+
+
+
+
+<span class="dt">int</span> inc(<span class="dt">int</span> x) {
+     x++;
+     <span class="kw">return</span> x;
+}
+
+<span class="dt">void</span> incByRef(<span class="dt">int</span> x, CallByRef(<span class="dt">int</span>,y)) {
+  x++;
+  DeRef(y) = x;
+}
+
+<span class="dt">int</span> main() {
+
+  <span class="dt">int</span> n = <span class="dv">1</span>;
+  <span class="dt">int</span> r;
+
+  incByRef(n,PassByRef(r));
+
+  printf(<span class="st">&quot;n = </span><span class="ch">%d</span><span class="st"> </span><span class="ch">\n</span><span class="st"> r = </span><span class="ch">%d</span><span class="st"> </span><span class="ch">\n</span><span class="st">&quot;</span>,n, r);
+
+}</code></pre></div>
+<p>Die Magie erklärt</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#define PassByRef(x) &amp;x</span>
+
+<span class="co">// incByRef(n, &amp;r);</span>
+incByRef(n,PassByRef(r));</code></pre></div>
+<p>Übergabe der Adresse von r.</p>
+<p>Der Operator <code>&amp;</code> liefert die Adresse (im Speicher).</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#define CallByRef(t,x) t* x</span>
+
+<span class="co">// void incByRef(int x, int* y)</span>
+<span class="dt">void</span> incByRef(<span class="dt">int</span> x, CallByRef(<span class="dt">int</span>,y))</code></pre></div>
+<p>Zweiter Parameter <code>y</code> ist ein &quot;Zeiger&quot;. Notation <code>int*</code>.</p>
+<p>Wertebereich sind Adressen.</p>
+<p>Genauer Adressen welche auf Integerwerte verweisen.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#define DeRef(x) *x</span>
+
+<span class="co">// *y = x;</span>
+DeRef(y) = x;</code></pre></div>
+<p>Zugriff auf Wert via Adresse.</p>
+<p>Operator <code>*</code> verweist auf Wert der an dieser Adresse liegt.</p>
+<p>Auf linker Seite der Zuweisung <code>=</code> wird der Wert dann durch rechte Seite überschrieben.</p>
+</div>
+<div id="zeiger---referenzübergabe" class="slide section level1">
+<h1>Zeiger - Referenzübergabe</h1>
+<ul>
+<li>Parameterübergabe in C/C++ ist &quot;call-by value&quot;</li>
+<li>Effizienzproblem im Fall von &quot;grossen&quot; Datentypen</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">struct</span> big {
+  <span class="dt">int</span> a[<span class="dv">100</span>];
+  <span class="dt">int</span> x;
+};
+
+<span class="kw">struct</span> big incX(<span class="kw">struct</span> big b2) {
+  b2.x = b2.x + <span class="dv">1</span>;
+  <span class="kw">return</span> b2;
+}
+
+<span class="dt">int</span> main() {
+  <span class="kw">struct</span> big b;
+  b = incX(b);
+}</code></pre></div>
+<ul>
+<li>Lösung 1: Entpacke &quot;x&quot;, inkrementiere einzeln, Aufwendig und Fehleranfällig</li>
+<li>Lösung 2: Benutze &quot;call-by reference&quot; mit Hilfe von Zeigern</li>
+</ul>
+</div>
+<div id="zeiger---referenzübergabe-2" class="slide section level1">
+<h1>Zeiger - Referenzübergabe (2)</h1>
+<p>Referenzübergabe = call-by reference</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">struct</span> big {
+  <span class="dt">int</span> a[<span class="dv">100</span>];
+  <span class="dt">int</span> x;
+};
+
+<span class="dt">void</span> incXByReference(<span class="kw">struct</span> big* bPtr) {
+  *bPtr.x = *bPtr.x + <span class="dv">1</span>;
+}
+
+<span class="dt">int</span> main() {
+  <span class="kw">struct</span> big b;
+  incXByReference(&amp;b);
+}</code></pre></div>
+<ul>
+<li>Übergabe von Referenz (Adresse im Speicher)</li>
+<li>&quot;in-place update&quot;: Originalwert wird direkt verändert</li>
+<li>Kein Kopieren notwendig</li>
+</ul>
+</div>
+<div id="zeiger---rückgabe-via-referenz" class="slide section level1">
+<h1>Zeiger - Rückgabe via Referenz</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> inc(<span class="dt">int</span> x) { <span class="kw">return</span> x<span class="dv">+1</span>; }
+
+<span class="dt">void</span> inc2(<span class="dt">int</span> x, <span class="dt">int</span>* r) { *r = x<span class="dv">+1</span>; }
+
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> x = <span class="dv">1</span>;
+  <span class="dt">int</span> result;
+
+  x = inc(x);
+  inc2(x, &amp;result);
+}</code></pre></div>
+<ul>
+<li>Übergebe Speicherbereich für Resultat</li>
+<li>Konvention
+<ul>
+<li>(Pointer)Parameter die Rückgabewerte repräsentieren kommen zuletzt</li>
+</ul></li>
+</ul>
+</div>
+<div id="zeiger-auf-zeiger" class="slide section level1">
+<h1>Zeiger auf Zeiger</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> i = <span class="dv">0</span>;
+  <span class="dt">int</span>* p = &amp;i;
+  <span class="dt">int</span>** pp = &amp;p;
+  <span class="dt">int</span>*** ppp = &amp;pp;
+ 
+  *(*(*ppp)) = <span class="dv">1</span>; 
+  printf(<span class="st">&quot; %d </span><span class="ch">\n</span><span class="st">&quot;</span>, i);
+}</code></pre></div>
+<ul>
+<li><code>***ppp</code> Kurzform von <code>*(*(*ppp))</code></li>
+</ul>
+</div>
+<div id="generischer-zeiger" class="slide section level1">
+<h1>Generischer Zeiger</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">void</span>* anyPtr;</code></pre></div>
+<ul>
+<li>Zeiger auf Wert eines nicht genau definierten Typs</li>
+<li>Vor Zugriff muss Typ genau spezifiziert werden</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> i;
+<span class="dt">float</span> f;
+anyPtr = &amp;i;
+f = * ((<span class="dt">int</span>*) anyPtr);</code></pre></div>
+<ul>
+<li><code>f = (float)(*anyPtr)</code>
+<ul>
+<li>nicht möglich, weil Typ nicht bekannt</li>
+</ul></li>
+<li><code>f = * ((float*) anyPtr)</code>
+<ul>
+<li>erlaubt aber gefährlich, weil Speicherlayout von <code>int</code> und <code>float</code> verschieden</li>
+</ul></li>
+</ul>
+</div>
+<div id="manuelle-speicherverwaltung" class="slide section level1">
+<h1>Manuelle Speicherverwaltung</h1>
+<ul>
+<li>In bisherigen Beispielen, aller Speicher wurde <em>statisch</em> allokiert.</li>
+<li>Dynamische Datenstrukturen (Array flexibler Größe, verkettete Liste etc) benötigen <em>dynamische</em> Speicherallokation.</li>
+<li>In C ist die Speicherverwaltung unter Kontrolle des Programmierers (keine garbage collection):</li>
+<li>Manuelle Speicherverwaltung
+<ul>
+<li>Hole Speicher: <code>malloc</code></li>
+<li>Gebe Speicher frei: <code>free</code></li>
+</ul></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">void</span> *malloc(size_t number_of_bytes)
+
+  <span class="dt">void</span> free(<span class="dt">void</span> *memblock);</code></pre></div>
+</div>
+<div id="manuelle-speicherverwaltung-beispiel" class="slide section level1">
+<h1>Manuelle Speicherverwaltung Beispiel</h1>
+<!-- stringMem.c -->
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">char</span>* initString(<span class="dt">int</span> n) {
+  <span class="dt">char</span>* p = malloc((n<span class="dv">+1</span>) * <span class="kw">sizeof</span>(<span class="dt">char</span>));
+  <span class="dt">char</span>* q = p;
+  <span class="dt">int</span> i;
+  <span class="kw">for</span>(i = <span class="dv">0</span>; i &lt; n; i++, q++) {
+    *q = &#39; &#39;;
+  }
+  *q = &#39;\<span class="dv">0</span>&#39;;
+
+  <span class="kw">return</span> p;
+}</code></pre></div>
+<ul>
+<li>String variabler Länge n</li>
+<li>Allokation von n+1 Bytes</li>
+<li>Initialiserung mit Leerzeichen</li>
+</ul>
+</div>
+<div id="was-alles-schief-gehen-kann" class="slide section level1">
+<h1>Was alles schief gehen kann</h1>
+<ul>
+<li><code>NULL</code> Dereferenzierung</li>
+<li>Fehlende Speicherfreigabe</li>
+<li>Zu häufige Speicherfreigabe</li>
+<li>...</li>
+</ul>
+</div>
+<div id="null-dereferenzierung" class="slide section level1">
+<h1><code>NULL</code> Dereferenzierung</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">char</span> c;
+  <span class="dt">char</span>* s;
+  c = *s;</code></pre></div>
+<ul>
+<li><p>Annahme <code>s</code> mit <code>NULL</code> (0) initialisiert</p></li>
+<li><p>Zugriff <code>*s</code> schlägt fehl</p></li>
+</ul>
+<pre><code>Segmentation fault: 11</code></pre>
+<ul>
+<li>Aber Initwert oft zufällig!</li>
+</ul>
+</div>
+<div id="null-dereferenzierung-beispiele" class="slide section level1">
+<h1><code>NULL</code> Dereferenzierung Beispiele</h1>
+<ul>
+<li>Falsche Reihenfolge</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">char</span> c;
+  <span class="dt">char</span>* s;
+  c = *s;
+  s = initString(<span class="dv">5</span>);</code></pre></div>
+<ul>
+<li>Speicher voll, <code>initString</code> liefert NULL</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">char</span> c;
+  <span class="dt">char</span>* s;
+  s = initString(<span class="dv">5</span>);
+  c = *s;</code></pre></div>
+<ul>
+<li>Aufgabe: Wie kann man <code>initString</code> sicher machen?</li>
+</ul>
+</div>
+<div id="speicherfreigabe" class="slide section level1">
+<h1>Speicherfreigabe</h1>
+<ul>
+<li>Vergessen <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5CRightarrow" alt="\Rightarrow" title="\Rightarrow" /> Speicherleck
+<ul>
+<li>Bleibt oft unbemerkt</li>
+</ul></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> main() {
+  <span class="dt">char</span>* s;
+  s = initString(<span class="dv">5</span>);
+}</code></pre></div>
+<ul>
+<li>Mehrfache Freigabe des gleichen Speicherbereichs <img style="vertical-align:middle" src="http://chart.apis.google.com/chart?cht=tx&amp;chl=%5CRightarrow" alt="\Rightarrow" title="\Rightarrow" /> Ausnahme zur Laufzeit</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> main() {
+  <span class="dt">char</span>* s1;
+  <span class="dt">char</span>* s2;
+  s1 = initString(<span class="dv">5</span>);
+  s2 = s1;
+  free(s1);
+  free(s2);
+}</code></pre></div>
+</div>
+<div id="zeiger-und-strukturen" class="slide section level1">
+<h1>Zeiger und Strukturen</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="kw">struct</span> position {
+  <span class="dt">int</span> x;
+  <span class="dt">float</span> y;
+};
+
+<span class="dt">int</span> main() {
+    <span class="kw">struct</span> position p = {<span class="dv">1</span>,<span class="fl">3.0</span>}; 
+    <span class="kw">struct</span> position* ptr = &amp;p;
+    (*ptr).x = <span class="dv">3</span>;
+    ptr-&gt;y = <span class="fl">1.0</span>;  
+    <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<ul>
+<li>Zugriff auf Struktur via <code>(*ptr)</code></li>
+<li>Zugriff auf Strukturelement via <code>.x</code></li>
+<li>Notationelle Abkürzung <code>ptr-&gt;</code></li>
+<li><code>(*ptr)</code> und <code>ptr-&gt;</code> sind gleichwertig</li>
+</ul>
+<h2 id="zeiger-und-verschachtelte-strukturen">Zeiger und Verschachtelte Strukturen</h2>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">struct</span> position {
+  <span class="dt">int</span> x;
+  <span class="dt">float</span> y;
+};
+
+<span class="kw">struct</span> node {
+   <span class="kw">struct</span> position pos;
+   <span class="kw">struct</span> node* next; <span class="co">// Pointer auf Struktur</span>
+   <span class="co">// verschachtelte Struktur</span>
+};
+
+<span class="kw">typedef</span> <span class="kw">struct</span> node* NodePtr; <span class="co">// Abkuerzung</span></code></pre></div>
+<ul>
+<li>NULL (0) spezieller Wert (Adresse)</li>
+<li>In unserem Fall, beschreibt Ende der Liste von Strukturen</li>
+</ul>
+<pre><code>+=======+           +=======+  
+| node1 | --next--&gt; | node2 |  --next--&gt; ... --next--&gt; NULLL  
++=======+           +=======+ </code></pre>
+<h2 id="notation-am-beispiel">Notation am Beispiel</h2>
+<p>Betrachte das Fibonacci Beispiel.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="kw">enum</span>  Status {
+  Full=<span class="dv">0</span>,
+  Empty=<span class="dv">1</span>
+};
+<span class="kw">struct</span> Fib {
+  <span class="dt">int</span> fib;
+  <span class="kw">enum</span> Status status;
+};
+
+<span class="kw">typedef</span> <span class="kw">struct</span> Fib* FibPtr;
+
+<span class="kw">struct</span> FibArray {
+  FibPtr f;
+  <span class="dt">int</span> len;
+};</code></pre></div>
+<p>Folgende Deklarationen sind gegeben.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> n;
+FibPtr f1;
+<span class="kw">struct</span> Fib* f2;
+structFibArry* fa;</code></pre></div>
+<ul>
+<li><p><code>f1</code> und <code>f2</code> sind Zeiger vom gleichen Typ.</p></li>
+<li><p>Folgende Schreibweisen sind äquivalent</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">fa-&gt;f[n].status
+
+(*fa).f[n].status
+
+fa-&gt;(*(f+n)).status
+
+fa-&gt;(f+n)-&gt;status</code></pre></div>
+</div>
+<div id="funktionspointer" class="slide section level1">
+<h1>Funktionspointer</h1>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c">  <span class="dt">int</span> (*pf)(<span class="dt">int</span>);</code></pre></div>
+<ul>
+<li>Zeiger auf Funktion mit Parameter <code>int</code> und Rückgabe <code>int</code></li>
+<li>Adress-/Verweisoperator wie gehabt</li>
+<li>Beispiel:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> f(<span class="dt">int</span> x) { <span class="kw">return</span> x<span class="dv">+1</span>; }
+<span class="dt">int</span> main () {
+  <span class="dt">int</span> (*pf)(<span class="dt">int</span>); 
+  pf = &amp;f;
+  printf(<span class="st">&quot;f(1) = %d </span><span class="ch">\n</span><span class="st">&quot;</span>,f(<span class="dv">1</span>));
+  printf(<span class="st">&quot;(*pf)(1) = %d </span><span class="ch">\n</span><span class="st">&quot;</span>,(*pf)(<span class="dv">1</span>));  
+}</code></pre></div>
+<h2 id="anwendungen-von-funktionspointer">Anwendungen von Funktionspointer</h2>
+<ul>
+<li>Call-backs</li>
+<li>Generische Funktionen</li>
+<li>Beispiel generische Sortierfunktion
+<ul>
+<li>Aus stdlib.h</li>
+<li><code>size_t</code> ist ein unsiged Typ, gross genug um die Größen von Datentypen zu berechen (Plattformabhängig)</li>
+<li>Hier notwendig, weil wir die Größe des Typs des zu sortierenden Arrays benötigen</li>
+</ul></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">void</span> qsort(<span class="dt">void</span> *base, 
+           size_t num_elements , 
+           size_t element_size, 
+           <span class="dt">int</span> (*compare)(<span class="dt">void</span> <span class="dt">const</span> *, 
+                          <span class="dt">void</span>  <span class="dt">const</span> *));</code></pre></div>
+<h2 id="weitere-beispiele">Weitere Beispiele</h2>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+<span class="kw">typedef</span> <span class="dt">int</span> (*intFunc)(<span class="dt">int</span>);
+
+<span class="dt">void</span> mapInt(<span class="dt">int</span>* p, <span class="dt">int</span> len, intFunc f) {
+ <span class="dt">int</span> i;
+ <span class="kw">for</span>(i=<span class="dv">0</span>; i&lt;len; i++)
+   p[i] = (*f)(p[i]);
+}
+
+
+<span class="dt">int</span> inc(<span class="dt">int</span> x) { <span class="kw">return</span> x<span class="dv">+1</span>; }
+<span class="dt">int</span> square(<span class="dt">int</span> x) { <span class="kw">return</span> x*x; }
+
+
+<span class="dt">int</span> main() {
+   <span class="dt">int</span> x[<span class="dv">5</span>] = { <span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span> };
+   mapInt(x,<span class="dv">5</span>,&amp;inc);
+   mapInt(x,<span class="dv">5</span>,&amp;square);
+
+   printf(<span class="st">&quot;%d&quot;</span>, x[<span class="dv">1</span>]);
+   
+   <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<p>Implizite Konversion (in neustem Standard).</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
+
+
+<span class="dt">void</span> mapInt(<span class="dt">int</span>* p, <span class="dt">int</span> len, <span class="dt">int</span> f(<span class="dt">int</span>)) {
+ <span class="dt">int</span> i;
+ <span class="kw">for</span>(i=<span class="dv">0</span>; i&lt;len; i++)
+   p[i] = f(p[i]);
+}
+
+
+<span class="dt">int</span> inc(<span class="dt">int</span> x) { <span class="kw">return</span> x<span class="dv">+1</span>; }
+<span class="dt">int</span> square(<span class="dt">int</span> x) { <span class="kw">return</span> x*x; }
+
+
+<span class="dt">int</span> main() {
+   <span class="dt">int</span> x[<span class="dv">5</span>] = { <span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span> };
+   mapInt(x,<span class="dv">5</span>,inc);
+   mapInt(x,<span class="dv">5</span>,square);
+
+   printf(<span class="st">&quot;%d&quot;</span>,x[<span class="dv">0</span>]);
+   <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="zusammenfassung" class="slide section level1">
+<h1>Zusammenfassung</h1>
+<p>Teil 1:</p>
+<ul>
+<li>IO printf/scanf</li>
+<li>Einfache Datentypen</li>
+<li>Kontrollstrukturen</li>
+<li>Komplexe Datenstrukturen</li>
+</ul>
+<p>Teil 2:</p>
+<ul>
+<li>Funktionen</li>
+<li>Header und Source Files</li>
+<li>Präprozessor und Makros</li>
+</ul>
+<p>Teil 3:</p>
+<ul>
+<li>Zeiger und Speicher</li>
+</ul>
+<p>Die wichtigsten Punkte von C wurden damit behandelt.</p>
+<!-- http://mirror.lihnidos.org/GNU/savannah//c-prog-book/learning_gnu_c.html -->
+</div>
+</body>
+</html>
