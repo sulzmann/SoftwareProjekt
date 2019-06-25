@@ -1,0 +1,1053 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Martin Sulzmann" />
+  <title>Syntax Analyse (Parsing)</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Syntax Analyse (Parsing)</h1>
+  <p class="author">
+Martin Sulzmann
+  </p>
+</div>
+<div id="übersicht" class="slide section level1">
+<h1>Übersicht</h1>
+<h2 id="parser">Parser</h2>
+<p>Umwendlung einer Eingabe (in der Regel in Textformat) in ein für die Weiterverarbeitung geeigneteres Format (in der Regel abstrakter Syntaxbaum).</p>
+<p>Dieser Vorgang wird benannt als Syntaxanalyse/Parsing.</p>
+<p>Typisches Beispiel. Java source code wird umgewandelt (&quot;geparsed&quot;), so dass der Compiler daraus Java Byte generiert.</p>
+<p>Beachte. Parsing ist verschieden von &quot;recognize&quot;. Mit recognize bezeichnen wir den Vorgang zu überprüfen, ob die Eingabe wohlgeformt. Z.B. ob ein Wort Teil einer kontext-freien Grammatik ist.</p>
+<p>Für eine allgemeine Übersicht siehe folgenden <a href="https://en.wikipedia.org/wiki/Parsing">wikipedia</a> Artikel.</p>
+<h2 id="inhalt">Inhalt</h2>
+<p>Wir bauen einen einfachen top-down Parser für arithmetische Ausdrücke.</p>
+</div>
+<div id="hintergrund---kontext-freie-sprachengrammatiken" class="slide section level1">
+<h1>Hintergrund - Kontext-freie Sprachen/Grammatiken</h1>
+<p>Wie sieht ein (syntaktisch) wohlgeformter arithmetischer Ausdruck aus?</p>
+<p>Beispiele</p>
+<pre><code>1, 2, ...
+
+1 + 2
+
+(1 + 3) * 2
+
+...</code></pre>
+<p>Formalere Sicht.</p>
+<p>E ist ein arithmetischer Ausdruck genau dann wenn (gdw)</p>
+<ul>
+<li><p>E ist eine Zahl</p></li>
+<li><p>E ist ein zusammengesetzter Ausruck E1+E2, E1*E2 wobei jeweils E1, E2 arithmetische Ausdrücke sind</p></li>
+<li><p>E ist ein geklammerter Ausdruck (E1) wbei E1 ein aritmetischer Ausdruck ist.</p></li>
+</ul>
+<p>Aha, die Regeln zur Beschreibung von arithmetischen Ausdrücken entsprechen Regel einer kontext-freien Grammatik</p>
+<pre><code>E -&gt; 0
+E -&gt; 1
+...
+...
+E -&gt; E + E
+E -&gt; E * E
+E -&gt; (E)</code></pre>
+<p>Hm, Regeln aufwändig für Zahlen allgemein</p>
+<pre><code>E -&gt; N
+N -&gt; 0
+...
+N -&gt; 9
+N -&gt; 0N
+...
+N -&gt; 9N</code></pre>
+<p>Kann stark vereinfacht werden mit Hilfe von regulären Ausdrücken! Z.B.</p>
+<pre><code>E -&gt; [&#39;0&#39;-&#39;9&#39;]+</code></pre>
+<p>wobei <code>r+ = r r*</code>. Sprich, einmalige Wiederholung von <code>r</code> gefolgt von <code>r+</code>. Wir schreiben <code>['0'-'9']</code> als Kurznotation für <code>'0'|...|'9'</code>.</p>
+<p>Es gibt eine Reihen von Metasyntax Notationen zur Beschreibung von kontext-freien Sprachen. Siehe z.B. <a href="https://en.wikipedia.org/wiki/Extended_Backus-Naur_form">Extended Backus–Naur form</a>.</p>
+<h3 id="unsere-syntax-von-arithmetischen-ausdrücken">Unsere Syntax von arithmetischen Ausdrücken</h3>
+<p>Angelehnt an <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form">EBNF</a>, betrachten wir folgende Syntax. Der Einfachheithalber betrachten wir nur die Zahlen, 0, 1 und 2.</p>
+<pre><code> N ::= 0 | 1 | 2 
+
+ E ::= N | (E) | E + E | E * E</code></pre>
+<p>Wir bezeichnen N und E als Nicht-Terminal Symbole und 0, 1, 2, (, ), + und * als Terminal Symbole.</p>
+<p>Was fällt auf? Die EBNF Grammatik ist nicht eindeutig!. D.h. für ein Wort gibt es zwei verschiedene Ableitungen.</p>
+<pre><code> (1) 
+          E
+       -&gt; E + E
+       -&gt; N + E
+       -&gt; 1 + E
+       -&gt; 1 + E * E
+       -&gt; 1 + N * E
+       -&gt; 1 + 2 * E
+       -&gt; 1 + 2 * N
+       -&gt; 1 + 2 * 1</code></pre>
+<pre><code> (2)
+
+          E
+       -&gt; E * E
+       -&gt; E + E * E
+       -&gt; 1 + E * E
+       -&gt; 1 + 2 * E
+       -&gt; 1 + 2 * 1</code></pre>
+<p>Was ist die Konsequenz verschiedener Ableitungen? Im Fall von (1) wird das Wort &quot;1 + 2 * 1&quot; interpretiert als <code>1 + (2 * 1)</code>. Im Fall von (2) wird das Wort &quot;1 + 2 * 1&quot; interpretiert als <code>(1 + 2) * 1</code>.</p>
+<p>Eindeutige Grammatik (bzw. Regeln welche Nicht-eindeutigkeiten Einschränkungen) sind wichtig. Weil sonst könnte Compiler A (Oracle) die Interpretation (1) verwenden und Compiler B (Microsoft) die Interpretation (2). Deshalb sollte wir eine eindeutige Beschreibung (der Syntax) von arithmetischen Ausdrücken haben.</p>
+<p>In der Regel gehen wir von &quot;Punkt vor Strich&quot; aus. Gibt es eine äquivalente (eindeutige) Grammatik welche die &quot;Punkt vor Strich&quot; umsetzt? Ja. Betrachte folgende Grammatik.</p>
+<pre><code>E ::= E + T | T
+
+T ::= T * F | F
+
+F ::= N | (E)</code></pre>
+<p>Betrachte Beispiel von oben.</p>
+<pre><code>          E
+       -&gt; E + T
+       -&gt; E + T * F
+       -&gt; T + T * F
+       -&gt; F + T * F
+       -&gt; F + F * F
+       -&gt; N + F * F
+       -&gt; 1 + F * F
+       -&gt; 1 + N * F
+       -&gt; 1 + 2 * F
+       -&gt; 1 + 2 * N
+       -&gt; 1 + 2 * 1</code></pre>
+<p>Interpretiert als <code>1 + (2 * 1)</code>.</p>
+<h3 id="randbemerkung-zu-chomsky-normal-form">Randbemerkung zu Chomsky Normal Form</h3>
+<p>Wir betrachten (einen Auszug) der Grammatik für arithmetische Ausdrüecken. Klammerung ignorieren wir.</p>
+<pre><code> N ::= 0 | 1 | 2 
+
+ E ::= N | E + E | E * E
+ ~~~~~~~~
+
+Eine dazu äquivalente Grammatik in [Chomsky Normal Form](https://en.wikipedia.org/wiki/Chomsky_normal_form) (CNF) ist wie folgt.
+</code></pre>
+<p>N ::= 0 | 1 | 2</p>
+<p>E ::= N | E E1 | E E4</p>
+<p>E1 ::= E3 E</p>
+<p>E3 ::= +</p>
+<p>E4 ::= E5 E</p>
+<p>E5 ::= * <sub>~<sub>~</sub></sub>~</p>
+<p>Obige CNF Grammatik ist nicht eindeutig. Betrachte z.B.</p>
+<pre><code>(1)
+       E
+    -&gt; E E1
+    -&gt; N E1
+    -&gt; 1 E1
+    -&gt; 1 E3 E
+    -&gt; 1 + E
+    -&gt; 1 + E E4
+    -&gt; 1 + N E4
+    -&gt; 1 + 2 E4
+    -&gt; 1 + 2 E5 E
+    -&gt; 1 + 2 * E
+    -&gt; 1 + 2 * N
+    -&gt; 1 + 2 * 1</code></pre>
+<pre><code>(2)
+       E
+    -&gt; E E4
+    -&gt; E E5 E
+    -&gt; E * E
+    -&gt; E * N
+    -&gt; E * 1
+    -&gt; E E1 * 1
+    -&gt; E E3 E * 1
+    -&gt; N E3 E * 1
+    -&gt; 1 E3 E * 1
+    -&gt; 1 + E * 1
+    -&gt; 1 + N * 1
+    -&gt; 1 + 2 * 1</code></pre>
+</div>
+<div id="ableitungsbäume" class="slide section level1">
+<h1>Ableitungsbäume</h1>
+<p>Jede Ableitung kann als (Ableitungs)baum dargestellt werden.</p>
+<p>Idee:</p>
+<p>Jede Regel (sprich deren Anwendung) besteht aus einer linken Seite (Nicht-Terminal Symbol) und rechten Seite (Mix aus Terminal und Nicht-Terminal Symbolen).</p>
+<p>Jedes Nicht-Terminal Symbol entspricht einem Zwischenknoten. Jedes Terminal Symbol entspricht einem Blatt(knoten).</p>
+<p>Das auf der linken Seite stehende Nicht-Terminal Symbol ist daher der Elternknoten und die Kinderknoten sind alle Symbole auf der rechten Seite.</p>
+<p>Betrachte z.B.</p>
+<pre><code>E ::= E + T</code></pre>
+<p>dargestellt als Baum</p>
+<pre><code>        E
+      / | \
+     E  +  T    
+</code></pre>
+<h2 id="beispiele">Beispiele</h2>
+<p>Betrachte die Ableitung</p>
+<pre><code>     E
+  -&gt; T
+  -&gt; F
+  -&gt; (E)
+  -&gt; (E + T)
+  -&gt; (T + T)
+  -&gt; (F + T)
+  -&gt; (F + F)
+  -&gt; (N + F)
+  -&gt; (N + N)
+  -&gt; (1 + 0)</code></pre>
+<p>Darstellung als Ableitungsbaum.</p>
+<pre><code>         E
+         |
+         T
+         |
+         F
+       / | \
+      (  E  )
+       / | \
+      E  +  T
+      |     |
+      T     F
+      |     |
+      F     N
+      |     |
+      N     0
+      |
+      1  </code></pre>
+<h2 id="konkrete-versus-abstrakter-ableitungsbaum">Konkrete versus abstrakter Ableitungsbaum</h2>
+<p>Obiger Ableitungsbaum gibt die <b>konkrete Syntax</b> wieder und wird daher als <b>konkreter Ableitungsbaum</b> bezeichnet. Alle Details bleiben erhalten.</p>
+<p>Zur weiteren (maschinellen) Verarbeitung sind nicht alle (konkreten) Details notwendig. Zumindest Zwischenschritte wie &quot;E abgeleitet zu T&quot; etc sind nicht relevant. Auch sind Klammern nicht notwendig, da die Klammerung durch die Struktur des Baumes gewährleistet wird.</p>
+<p>Deshalb betrachten wir die <b>abstrakten Syntax</b> beschrieben durch den </b>abstrakten Ableitungsbaum</b>.</p>
+<pre><code>         +
+        / \
+       1   0     </code></pre>
+<p>In der abstrakten Ableitungsbaum Darstellung werden ausserdem die (Nicht-Terminale) Operatoren als Zwischenknoten verwendet.</p>
+<h3 id="darstellung-in-c">Darstellung in C++</h3>
+<p>Wie kann die Syntax in C++ dargestellt werden? Idee: Basisklassung mit Vererbung.</p>
+<p>Unten finden Sie eine Skizze. Beachte. Die Skizze ist stark vereinfacht im Vergleich zur Implementierung die Ihnen zur Verfügung gestellt ist.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Exp {};
+
+<span class="kw">class</span> IntExp : Exp {
+   <span class="dt">int</span> val;
+   IntExp(<span class="dt">int</span> x) { val = x; }
+};
+
+<span class="kw">class</span> PlusExp : Exp {
+   Exp l,r;
+   PlusExp(Exp x,y) { l = x; r = y; }
+};
+
+<span class="kw">class</span> MultExp : Exp {
+   Exp l,r;
+   MultExp(Exp x,y) { l = x; r = y; }
+};</code></pre></div>
+<p>Beachte. Klammerung muss nicht in C++ dargestellt werden. Implizit behandelt durch Klammerung der jeweiligen Objekte.</p>
+<p>Beispiel.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="st">&quot;1 + (3 + 5)&quot;</span>
+
+==&gt;
+
+PlusExp(IntExp(<span class="dv">1</span>), PlusExp(IntExp(<span class="dv">3</span>), IntExp(<span class="dv">5</span>)))</code></pre></div>
+<p>Aha! In der C++ Darstellung ist die &quot;Klammerung&quot; implizit garantiert durch die Struktur des Objekts!</p>
+</div>
+<div id="parser-1" class="slide section level1">
+<h1>Parser</h1>
+<p>Ziel:</p>
+<p>Wandle Eingabe um in einen abstrakten Ableitungsbaum. In der Regel bezeichnet als abstrakter Syntax Baum. Auf Englisch: Abstract syntax tree (AST).</p>
+<h2 id="allgemeine-parser">Allgemeine Parser</h2>
+<p>Siehe <a href="https://en.wikipedia.org/wiki/CYK_algorithm">Cocke–Younger–Kasami algorithm</a>.</p>
+<p>Kubische Komplexität.</p>
+</div>
+<div id="top-down-parsing" class="slide section level1">
+<h1>Top-Down Parsing</h1>
+<p>Deterministisches parsen in linearer Zeit.</p>
+<h2 id="beispiel">Beispiel</h2>
+<p>Betrachte unsere Grammatik.</p>
+<pre><code>E ::= E + T | T
+
+T ::= T * F | F
+
+F ::= N | (E)
+
+N ::= 0 | 1 | 2 </code></pre>
+<p>Vorgehen:</p>
+<ul>
+<li><p>Wir haben Zugriff auf das aktuelle Zeichen der Eingabe (&quot;look ahead&quot; gleich 1).</p></li>
+<li><p>Basiered auf dem aktuellem Zeichen, Auswahl der geeigneten Regel.</p></li>
+</ul>
+<p>Problem! Links-Rekursion in der Grammatik.</p>
+<h2 id="elimination-der-links-rekursion">Elimination der Links-Rekursion</h2>
+<pre><code>E ::= T E&#39; 
+
+E&#39; ::= + T E&#39; |
+
+T ::= F T&#39;
+
+T&#39; ::= * F T&#39; |
+
+F ::= N | (E)
+
+N ::= 0 | 1 | 2 </code></pre>
+<p>Baue daraus Parser. Wie?</p>
+<h3 id="die-idee">Die Idee</h3>
+<p>Jedes Nicht-Terminal impliziert eine Funktion.</p>
+<p>Falls diese Funktion erfolgreich ausgeführt wird, wurde ein Wort erkannt welches ableitbar ist via dem korrespondierenden Nicht-Terminal.</p>
+<p>Der Funktionsrumpf ist definiert durch die rechte Regelseite.</p>
+<p>Beachte: Links-Rekursion wurde eliminiert. Dadurch können wir garantierten, dass die Funktion terminiert (nicht notwendigerweise erfolgreich, falls ein Wort nicht erkannt wird).</p>
+<p>Betrachte die Regel.</p>
+<pre><code>E ::= T E&#39; </code></pre>
+<p>Daraus generieren wir</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">E() {
+  T();
+  E2();
+}
+<span class="co">// In C++ duerfen Funktionsnamen mit Grossbuchstaben beginnen.</span>
+<span class="co">// Anstatt E&#39;, verwenden wir E2.</span>
+<span class="co">// T und E2 muessen noch definiert werden.</span></code></pre></div>
+<p>Vor jedem Funktionsaufruf können wir testen, ob ein erfolgreicher Aufruf möglich ist.</p>
+<p>Wir berechnen die &quot;first&quot; Menge für alle Nicht-Terminale.</p>
+<pre><code>first(E) = first(T) = first(F) = { 0, 1, 2, ( }</code></pre>
+<p>Entspricht den an erster Position erscheinenden Zeichen.</p>
+<p>Weitere Annahmen.</p>
+<pre><code>Globale Variable token referenziert das aktuelle Zeichen.
+
+Via getNext() wird token auf das nachfolgende Zeichen gesetzt.
+</code></pre>
+<p>Alternative Definition von E.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">E() {
+  <span class="kw">if</span> token <span class="kw">not</span> in first(T) then ABORT;
+  T();
+  E2();
+}</code></pre></div>
+<p>Beide Definitionen sind moeglich (Geschmackssache). Wir verwenden den ersten Stil.</p>
+<p>Die Grammatik</p>
+<pre><code>E ::= T E&#39; 
+
+E&#39; ::= + T E&#39; |
+
+T ::= F T&#39;
+
+T&#39; ::= * F T&#39; |
+
+F ::= N | (E)
+
+N ::= 0 | 1 | 2 </code></pre>
+<p>wird uebersetzt wie folgt.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">E() {
+  T();  E2();
+}
+
+E2() {
+ <span class="kw">if</span> token = +
+ then  getNext(); T(); E2();
+} 
+
+T() {
+  F(); T2();
+}
+
+T2() {
+  <span class="kw">if</span> token = *
+  then getNext(); F(); T2();
+}
+
+F() {
+  <span class="kw">if</span> token in {<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>}
+  then getNext(); <span class="kw">return</span>;
+  <span class="kw">if</span> token = (
+  then getNext();
+       E();
+       <span class="kw">if</span> token = )
+       then getNext(); <span class="kw">return</span>;
+       <span class="kw">else</span> ABORT;
+  <span class="kw">else</span> ABORT;
+}      </code></pre></div>
+<p>Obige Funktionen definieren einen &quot;top-down Parser&quot;. Wir fangen &quot;top-down&quot; an. Beginnend mit dem Startsymbol E usw.</p>
+<p>Erfolgreiche Ausfuehrung von E() impliziert ein Wort der Sprache wie oben beschrieben wurde erkannt.</p>
+<p>Bemerkung: Wir muessen noch ueberprufen, ob alle Zeichen verarbeitet wurden (end of string).</p>
+<h3 id="vorverarbeitung-tokenizer">Vorverarbeitung (Tokenizer)</h3>
+<p>Elimination von Leerzeichen.</p>
+<p>Elimination von Kommentaren.</p>
+<p>Erkennen von Variablennamen, Zahlen (bestehend aus mehreren digits), Schluesselwoertern, ...</p>
+</div>
+<div id="top-down-matcher" class="slide section level1">
+<h1>Top-Down Matcher</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+<span class="ot">#include &lt;vector&gt;</span>
+
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+
+<span class="kw">typedef</span> <span class="kw">enum</span> {
+  EOS,           <span class="co">// End of string</span>
+  ZERO,
+  ONE,
+  TWO,
+  OPEN,
+  CLOSE,
+  PLUS,
+  MULT
+} Token_t;
+
+
+string showTok(Token_t t) {
+  <span class="kw">switch</span>(t) {
+  <span class="kw">case</span> EOS:   <span class="kw">return</span> <span class="st">&quot;EOS&quot;</span>;
+  <span class="kw">case</span> ZERO:  <span class="kw">return</span> <span class="st">&quot;ZERO&quot;</span>;    
+  <span class="kw">case</span> ONE:   <span class="kw">return</span> <span class="st">&quot;ONE&quot;</span>;
+  <span class="kw">case</span> TWO:   <span class="kw">return</span> <span class="st">&quot;TWO&quot;</span>;      
+  <span class="kw">case</span> OPEN:  <span class="kw">return</span> <span class="st">&quot;OPEN&quot;</span>;
+  <span class="kw">case</span> CLOSE: <span class="kw">return</span> <span class="st">&quot;CLOSE&quot;</span>;
+  <span class="kw">case</span> PLUS:  <span class="kw">return</span> <span class="st">&quot;PLUS&quot;</span>;
+  <span class="kw">case</span> MULT:  <span class="kw">return</span> <span class="st">&quot;MULT&quot;</span>;
+  }
+  <span class="co">// NOTE: The (clang) compiler is able to figure out that</span>
+  <span class="co">// along all control-flow paths, a return statement will be reached.</span>
+}
+
+
+<span class="kw">class</span> Tokenize {
+  string s;
+  <span class="dt">int</span> pos;
+<span class="kw">public</span>:
+  Tokenize(string s) {
+         <span class="kw">this</span>-&gt;s = s;
+     pos = <span class="dv">0</span>;
+  }
+
+  <span class="co">// Scan throuh string, letter (symbol) by letter.</span>
+  Token_t next() {
+    <span class="kw">if</span>(s.length() &lt;= pos)
+      <span class="kw">return</span> EOS;
+
+    <span class="kw">while</span>(<span class="dv">1</span>) {
+
+       <span class="kw">if</span>(s.length() &lt;= pos)
+         <span class="kw">return</span> EOS;
+      
+       <span class="kw">switch</span>(s[pos]) {
+       <span class="kw">case</span> <span class="st">&#39;0&#39;</span>: pos++;
+                 <span class="kw">return</span> ZERO;        
+       <span class="kw">case</span> <span class="st">&#39;1&#39;</span>: pos++;
+                 <span class="kw">return</span> ONE;
+       <span class="kw">case</span> <span class="st">&#39;2&#39;</span>: pos++;
+                 <span class="kw">return</span> TWO;
+       <span class="kw">case</span> <span class="st">&#39;(&#39;</span>: pos++;
+                 <span class="kw">return</span> OPEN;
+       <span class="kw">case</span> <span class="st">&#39;)&#39;</span>: pos++;
+                 <span class="kw">return</span> CLOSE;
+       <span class="kw">case</span> <span class="st">&#39;+&#39;</span>: pos++;
+                 <span class="kw">return</span> PLUS;
+       <span class="kw">case</span> <span class="st">&#39;*&#39;</span>: pos++;
+                 <span class="kw">return</span> MULT;         
+       <span class="kw">default</span>:  <span class="co">// we simply skip all other symbols !</span>
+                 pos++;
+             <span class="kw">break</span>;
+       }
+    }
+  } <span class="co">// next</span>
+
+  vector&lt;Token_t&gt; scan() {
+    vector&lt;Token_t&gt; v;
+    Token_t t;
+
+    <span class="kw">do</span> {
+      t = next();
+      v.push_back(t);
+    }
+    <span class="kw">while</span>(t != EOS);
+
+    <span class="kw">return</span> v;
+  } <span class="co">// scan</span>
+
+  string show() {
+    vector&lt;Token_t&gt; v = <span class="kw">this</span>-&gt;scan();
+    string s;
+
+    <span class="kw">for</span>(<span class="dt">int</span> i=<span class="dv">0</span>; i &lt; v.size(); i++) {
+      s += showTok(v[i]);
+      <span class="kw">if</span>(i<span class="dv">+1</span> &lt; v.size())
+    s += <span class="st">&quot;;&quot;</span> ;         <span class="co">// Add delimiter</span>
+    }
+    <span class="kw">return</span> s;
+  } <span class="co">// show</span>
+};
+
+<span class="co">// Wrapper class, provide the (current) token.</span>
+<span class="kw">class</span> Tokenizer : Tokenize {
+<span class="kw">public</span>:
+  Token_t token;
+  Tokenizer(string s) : Tokenize(s) { token = next(); }
+  <span class="dt">void</span> nextToken() {
+    token = next();
+  }
+};
+
+<span class="dt">void</span> testTokenize() {
+  <span class="co">//  Tokenize t1(&quot;1 + (3 * 4)&quot;);</span>
+  {
+    Tokenize t1(<span class="st">&quot;  1 + (0 * 1)&quot;</span>);
+
+  cout &lt;&lt; t1.show() &lt;&lt; endl;
+  }
+
+  {
+    Tokenize t1(<span class="st">&quot;&quot;</span>);
+
+  cout &lt;&lt; t1.show() &lt;&lt; endl;
+  }
+}
+
+
+
+<span class="co">// We first build a matcher (with pretty much zero error handling).</span>
+<span class="co">// Functional style where we thread through the tokenizer.</span>
+<span class="co">// The alternative would be to define a &quot;matcher&quot; class</span>
+<span class="co">// where the tokenizer is part of the match object&#39;s internal state.</span>
+
+
+<span class="co">// Note: Call-by reference for tokenizer, why?</span>
+<span class="co">// Hint: Consider the tokenizer&#39;s internal state.</span>
+<span class="dt">bool</span> matchE(Tokenizer &amp;t);
+<span class="dt">bool</span> matchT(Tokenizer &amp;t);
+<span class="dt">bool</span> matchE2(Tokenizer &amp;t);
+<span class="dt">bool</span> matchF(Tokenizer &amp;t);
+<span class="dt">bool</span> matchT2(Tokenizer &amp;t);
+
+<span class="co">// E  ::= T E&#39;</span>
+<span class="dt">bool</span> matchE(Tokenizer &amp;t) {
+
+  <span class="kw">if</span>(!matchT(t))
+    <span class="kw">return</span> <span class="kw">false</span>;
+  <span class="kw">if</span>(!matchE2(t))
+    <span class="kw">return</span> <span class="kw">false</span>;     
+
+  <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="co">// E&#39; ::= + T E&#39; | </span>
+<span class="dt">bool</span> matchE2(Tokenizer &amp;t) {
+
+  <span class="kw">if</span>(t.token == PLUS) {
+    t.nextToken();
+    <span class="kw">if</span>(!matchT(t))
+      <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">if</span>(!matchE2(t))
+      <span class="kw">return</span> <span class="kw">false</span>;
+  }
+
+  <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="co">// T  ::= F T&#39;</span>
+<span class="dt">bool</span> matchT(Tokenizer &amp;t) {
+  <span class="kw">if</span>(!matchF(t))
+    <span class="kw">return</span> <span class="kw">false</span>;
+  <span class="kw">if</span>(!matchT2(t))
+    <span class="kw">return</span> <span class="kw">false</span>;
+
+  <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="co">// T&#39; ::= * F T&#39; |</span>
+<span class="dt">bool</span> matchT2(Tokenizer &amp;t) {
+
+  <span class="kw">if</span>(t.token == MULT) {
+    t.nextToken();
+    <span class="kw">if</span>(!matchF(t))
+      <span class="kw">return</span> <span class="kw">false</span>;
+    <span class="kw">if</span>(!matchT2(t))
+      <span class="kw">return</span> <span class="kw">false</span>;
+  }
+
+  <span class="kw">return</span> <span class="kw">true</span>;
+}
+
+<span class="co">// F ::= N | (E)</span>
+<span class="dt">bool</span> matchF(Tokenizer &amp;t) {
+  <span class="kw">switch</span>(t.token) {
+  <span class="kw">case</span> ZERO:
+      t.nextToken();
+      <span class="kw">return</span> <span class="kw">true</span>;
+  <span class="kw">case</span> ONE:
+      t.nextToken();
+      <span class="kw">return</span> <span class="kw">true</span>;
+  <span class="kw">case</span> TWO:
+      t.nextToken();
+      <span class="kw">return</span> <span class="kw">true</span>;
+  <span class="kw">case</span> OPEN:
+      t.nextToken();
+      <span class="kw">if</span>(!matchE(t))
+         <span class="kw">return</span> <span class="kw">false</span>;
+      <span class="kw">if</span>(t.token != CLOSE)
+    <span class="kw">return</span> <span class="kw">false</span>;
+      t.nextToken();
+      <span class="kw">return</span> <span class="kw">true</span>;
+  <span class="kw">default</span>: <span class="kw">return</span> <span class="kw">false</span>;
+  }
+}
+
+
+
+<span class="dt">bool</span> match(string s) {
+  Tokenizer t(s);
+  <span class="dt">bool</span> b = matchE(t);
+  <span class="kw">if</span>(b &amp;&amp; t.token == EOS)
+    <span class="kw">return</span> <span class="kw">true</span>;
+  <span class="kw">return</span> <span class="kw">false</span>;
+}
+
+<span class="dt">void</span> testMatcherBad() {
+
+  cout &lt;&lt; match(<span class="st">&quot;&quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;1 + &quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;1 + *&quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;(1 &quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;(1 ) )&quot;</span>);
+}
+
+<span class="dt">void</span> testMatcherGood() {
+
+  cout &lt;&lt; match(<span class="st">&quot;1&quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;1 + 0&quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;1 * 2&quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;(1)&quot;</span>);  
+  
+  cout &lt;&lt; match(<span class="st">&quot;1 * (2)&quot;</span>);
+
+  cout &lt;&lt; match(<span class="st">&quot;(1 + 2) * 0&quot;</span>);  
+  
+
+}
+
+<span class="dt">void</span> testMatcher() {
+
+  cout &lt;&lt; <span class="st">&quot;good: &quot;</span>;
+  testMatcherGood();
+
+  cout &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st"> bad: &quot;</span>;
+  testMatcherBad();
+}
+
+
+  
+<span class="dt">int</span> main() {
+
+  testTokenize();
+
+  testMatcher();
+
+  <span class="kw">return</span> <span class="dv">1</span>;
+}</code></pre></div>
+</div>
+<div id="top-down-parser-mit-ast-generierung" class="slide section level1">
+<h1>Top-Down Parser mit AST Generierung</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">
+<span class="co">// g++ --std=c++11 expParser.cpp</span>
+
+<span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+<span class="ot">#include &lt;vector&gt;</span>
+
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+
+<span class="co">// Utility stuff</span>
+
+<span class="co">// Haskell&#39;s Maybe</span>
+<span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+<span class="kw">class</span> Optional {
+  <span class="dt">bool</span> b;
+  T val;
+<span class="kw">public</span>:
+  Optional() : b(<span class="kw">false</span>) {}
+  Optional(T v) : val(v), b(<span class="kw">true</span>) {}
+  <span class="dt">bool</span> isJust() { <span class="kw">return</span> b; }
+  <span class="dt">bool</span> isNothing() { <span class="kw">return</span> !b; }
+  T fromJust() { <span class="kw">return</span> val; }
+};
+
+<span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+Optional&lt;T&gt; nothing() {
+  <span class="kw">return</span> Optional&lt;T&gt;();
+}
+
+<span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+Optional&lt;T&gt; just(T v) {
+  <span class="kw">return</span> Optional&lt;T&gt;(v);
+}
+
+
+<span class="kw">typedef</span> <span class="kw">enum</span> {
+  EOS,           <span class="co">// End of string</span>
+  ZERO,
+  ONE,
+  TWO,
+  OPEN,
+  CLOSE,
+  PLUS,
+  MULT
+} Token_t;
+
+
+string showTok(Token_t t) {
+  <span class="kw">switch</span>(t) {
+  <span class="kw">case</span> EOS:   <span class="kw">return</span> <span class="st">&quot;EOS&quot;</span>;
+  <span class="kw">case</span> ZERO:  <span class="kw">return</span> <span class="st">&quot;ZERO&quot;</span>;    
+  <span class="kw">case</span> ONE:   <span class="kw">return</span> <span class="st">&quot;ONE&quot;</span>;
+  <span class="kw">case</span> TWO:   <span class="kw">return</span> <span class="st">&quot;TWO&quot;</span>;      
+  <span class="kw">case</span> OPEN:  <span class="kw">return</span> <span class="st">&quot;OPEN&quot;</span>;
+  <span class="kw">case</span> CLOSE: <span class="kw">return</span> <span class="st">&quot;CLOSE&quot;</span>;
+  <span class="kw">case</span> PLUS:  <span class="kw">return</span> <span class="st">&quot;PLUS&quot;</span>;
+  <span class="kw">case</span> MULT:  <span class="kw">return</span> <span class="st">&quot;MULT&quot;</span>;
+  }
+  <span class="co">// NOTE: The (clang) compiler is able to figure out that</span>
+  <span class="co">// along all control-flow paths, a return statement will be reached.</span>
+}
+
+
+<span class="kw">class</span> Tokenize {
+  string s;
+  <span class="dt">int</span> pos;
+<span class="kw">public</span>:
+  Tokenize(string s) {
+         <span class="kw">this</span>-&gt;s = s;
+     pos = <span class="dv">0</span>;
+  }
+
+  <span class="co">// Scan throuh string, letter (symbol) by letter.</span>
+  Token_t next() {
+    <span class="kw">if</span>(s.length() &lt;= pos)
+      <span class="kw">return</span> EOS;
+
+    <span class="kw">while</span>(<span class="dv">1</span>) {
+
+       <span class="kw">if</span>(s.length() &lt;= pos)
+         <span class="kw">return</span> EOS;
+      
+       <span class="kw">switch</span>(s[pos]) {
+       <span class="kw">case</span> <span class="st">&#39;0&#39;</span>: pos++;
+                 <span class="kw">return</span> ZERO;        
+       <span class="kw">case</span> <span class="st">&#39;1&#39;</span>: pos++;
+                 <span class="kw">return</span> ONE;
+       <span class="kw">case</span> <span class="st">&#39;2&#39;</span>: pos++;
+                 <span class="kw">return</span> TWO;
+       <span class="kw">case</span> <span class="st">&#39;(&#39;</span>: pos++;
+                 <span class="kw">return</span> OPEN;
+       <span class="kw">case</span> <span class="st">&#39;)&#39;</span>: pos++;
+                 <span class="kw">return</span> CLOSE;
+       <span class="kw">case</span> <span class="st">&#39;+&#39;</span>: pos++;
+                 <span class="kw">return</span> PLUS;
+       <span class="kw">case</span> <span class="st">&#39;*&#39;</span>: pos++;
+                 <span class="kw">return</span> MULT;         
+       <span class="kw">default</span>:  <span class="co">// we simply skip all other symbols !</span>
+                 pos++;
+             <span class="kw">break</span>;
+       }
+    }
+  } <span class="co">// next</span>
+
+  vector&lt;Token_t&gt; scan() {
+    vector&lt;Token_t&gt; v;
+    Token_t t;
+
+    <span class="kw">do</span> {
+      t = next();
+      v.push_back(t);
+    }
+    <span class="kw">while</span>(t != EOS);
+
+    <span class="kw">return</span> v;
+  } <span class="co">// scan</span>
+
+  string show() {
+    vector&lt;Token_t&gt; v = <span class="kw">this</span>-&gt;scan();
+    string s;
+
+    <span class="kw">for</span>(<span class="dt">int</span> i=<span class="dv">0</span>; i &lt; v.size(); i++) {
+      s += showTok(v[i]);
+      <span class="kw">if</span>(i<span class="dv">+1</span> &lt; v.size())
+    s += <span class="st">&quot;;&quot;</span> ;         <span class="co">// Add delimiter</span>
+    }
+    <span class="kw">return</span> s;
+  } <span class="co">// show</span>
+};
+
+<span class="co">// Wrapper class, provide the (current) token.</span>
+<span class="kw">class</span> Tokenizer : Tokenize {
+<span class="kw">public</span>:
+  Token_t token;
+  Tokenizer(string s) : Tokenize(s) { token = next(); }
+  <span class="dt">void</span> nextToken() {
+    token = next();
+  }
+};
+
+<span class="dt">void</span> testTokenize() {
+  <span class="co">//  Tokenize t1(&quot;1 + (3 * 4)&quot;);</span>
+  {
+    Tokenize t1(<span class="st">&quot;  1 + (0 * 1)&quot;</span>);
+
+  cout &lt;&lt; t1.show() &lt;&lt; endl;
+  }
+
+  {
+    Tokenize t1(<span class="st">&quot;&quot;</span>);
+
+  cout &lt;&lt; t1.show() &lt;&lt; endl;
+  }
+}
+
+
+<span class="co">// Exp AST</span>
+
+<span class="kw">class</span> Exp {
+<span class="kw">public</span>:
+  <span class="kw">virtual</span> <span class="dt">int</span> eval() = <span class="dv">0</span>;
+  <span class="kw">virtual</span> string pretty() = <span class="dv">0</span>;
+};
+
+
+<span class="kw">class</span> IntExp : <span class="kw">public</span> Exp {
+  <span class="dt">int</span> val;
+  <span class="kw">public</span>:
+  IntExp(<span class="dt">int</span> _val) { val = _val; }
+  <span class="dt">int</span> eval() { <span class="kw">return</span> val;}
+    string pretty() {
+      <span class="kw">return</span> to_string(val);
+  }
+};
+
+<span class="kw">class</span> PlusExp : <span class="kw">public</span> Exp {
+  std::shared_ptr&lt;Exp&gt; e1;
+  std::shared_ptr&lt;Exp&gt; e2;
+  <span class="kw">public</span>:
+  PlusExp(std::shared_ptr&lt;Exp&gt; _e1, std::shared_ptr&lt;Exp&gt; _e2) {
+      e1 = _e1; e2 = _e2;
+  }
+  <span class="dt">int</span> eval() { <span class="kw">return</span> e1-&gt;eval() + e2-&gt;eval(); }
+    string pretty() {
+    string s(<span class="st">&quot;(&quot;</span>);
+    s.append(e1-&gt;pretty());
+    s.append(<span class="st">&quot;+&quot;</span>);
+    s.append(e2-&gt;pretty());
+    s.append(<span class="st">&quot;)&quot;</span>);    
+    <span class="kw">return</span> s;
+  }
+};
+
+
+<span class="kw">class</span> MultExp : <span class="kw">public</span> Exp {
+  std::shared_ptr&lt;Exp&gt; e1;
+  std::shared_ptr&lt;Exp&gt; e2;
+  <span class="kw">public</span>:
+  MultExp(std::shared_ptr &lt;Exp&gt; _e1, std::shared_ptr&lt;Exp&gt; _e2) {
+      e1 = _e1; e2 = _e2;
+  }
+  <span class="dt">int</span> eval() { <span class="kw">return</span> e1-&gt;eval() * e2-&gt;eval(); }
+    string pretty() {
+    string s(<span class="st">&quot;(&quot;</span>);
+    s.append(e1-&gt;pretty());
+    s.append(<span class="st">&quot;*&quot;</span>);
+    s.append(e2-&gt;pretty());
+    s.append(<span class="st">&quot;)&quot;</span>);    
+    <span class="kw">return</span> s;
+  }
+};
+
+<span class="co">// Short-hands</span>
+
+<span class="kw">typedef</span> std::shared_ptr&lt;Exp&gt; EXP;
+
+EXP newInt(<span class="dt">int</span> i) {
+  <span class="kw">return</span> std::make_shared&lt;IntExp&gt;(i);
+}
+
+EXP newPlus(EXP l, EXP r) {
+  <span class="kw">return</span> std::make_shared&lt;PlusExp&gt;(l,r);
+}
+
+EXP newMult(EXP l, EXP r) {
+  <span class="kw">return</span> std::make_shared&lt;MultExp&gt;(l,r);
+}
+
+
+
+
+<span class="co">// Now comes the parser (OO-style)</span>
+
+<span class="kw">class</span> Parser {
+  Tokenizer t;
+
+  <span class="co">// E  ::= T E&#39;</span>
+  Optional&lt;EXP&gt; parseE() {
+    
+    Optional&lt;EXP&gt; t = parseT();
+    <span class="kw">if</span>(t.isNothing())
+      <span class="kw">return</span> t;
+
+    <span class="kw">return</span> parseE2(t.fromJust());
+  }
+
+  <span class="co">// E&#39; ::= + T E&#39; | </span>
+  Optional&lt;EXP&gt; parseE2(EXP left) {
+
+    <span class="kw">if</span>(t.token == PLUS) {
+        t.nextToken();
+
+    Optional&lt;EXP&gt; right = parseT();
+    <span class="kw">if</span>(right.isNothing())
+      <span class="kw">return</span> right;
+
+    <span class="kw">return</span> parseE2(newPlus(left, right.fromJust()));
+    }
+
+    <span class="kw">return</span> just&lt;EXP&gt;(left);
+  }
+
+  <span class="co">// T  ::= F T&#39;</span>
+  Optional&lt;EXP&gt; parseT() {
+
+    Optional&lt;EXP&gt; f = parseF();
+    <span class="kw">if</span>(f.isNothing())
+      <span class="kw">return</span> f;
+
+    <span class="kw">return</span> parseT2(f.fromJust());
+  }
+
+  <span class="co">// T&#39; ::= * F T&#39; |</span>
+  Optional&lt;EXP&gt; parseT2(EXP left) {
+    <span class="kw">if</span>(t.token == MULT) {
+      t.nextToken();
+
+      Optional&lt;EXP&gt; right = parseF();
+      <span class="kw">if</span>(right.isNothing())
+    <span class="kw">return</span> right;
+
+      <span class="kw">return</span> parseT2(newMult(left, right.fromJust()));
+    }
+
+    <span class="kw">return</span> just&lt;EXP&gt;(left);
+  }
+
+  <span class="co">// F ::= N | (E)</span>
+  Optional&lt;EXP&gt; parseF() {
+      <span class="kw">switch</span>(t.token) {
+      <span class="kw">case</span> ZERO:
+          t.nextToken();
+          <span class="kw">return</span> just&lt;EXP&gt;(newInt(<span class="dv">0</span>));
+      <span class="kw">case</span> ONE:
+          t.nextToken();
+          <span class="kw">return</span> just&lt;EXP&gt;(newInt(<span class="dv">1</span>));
+      <span class="kw">case</span> TWO:
+          t.nextToken();
+          <span class="kw">return</span> just&lt;EXP&gt;(newInt(<span class="dv">2</span>));
+      <span class="kw">case</span> OPEN: { <span class="co">// introduce new scope</span>
+          t.nextToken();
+      Optional&lt;EXP&gt; e = parseE();
+      <span class="kw">if</span>(e.isNothing())
+        <span class="kw">return</span> e;
+          <span class="kw">if</span>(t.token != CLOSE)
+        <span class="kw">return</span> nothing&lt;EXP&gt;();
+      t.nextToken();
+      <span class="kw">return</span> e; }
+      <span class="kw">default</span>: <span class="kw">return</span> nothing&lt;EXP&gt;();
+      }
+
+  }
+  
+<span class="kw">public</span>:
+  Parser(string s) : t(Tokenizer(s)) { }
+
+  Optional&lt;EXP&gt; parse() {
+    Optional&lt;EXP&gt; e= parseE();
+
+    <span class="kw">return</span> e;
+  }
+};
+
+<span class="dt">void</span> display(Optional&lt;EXP&gt; e) {
+  <span class="kw">if</span>(e.isNothing()) {
+    cout &lt;&lt; <span class="st">&quot;nothing </span><span class="ch">\n</span><span class="st">&quot;</span>;
+  } <span class="kw">else</span> {
+    cout &lt;&lt; (e.fromJust())-&gt;pretty() &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>;
+  }
+  <span class="kw">return</span>;
+}
+
+<span class="dt">void</span> testParserGood() {
+
+  <span class="co">/*</span>
+<span class="co">  display(Parser(&quot;1&quot;).parse());</span>
+
+<span class="co">  display(Parser(&quot;1 + 0 &quot;).parse());</span>
+
+<span class="co">  display(Parser(&quot;1 + (0) &quot;).parse());</span>
+
+<span class="co">  display(Parser(&quot;1 + 2 * 0 &quot;).parse());</span>
+
+<span class="co">  display(Parser(&quot;1 * 2 + 0 &quot;).parse());</span>
+<span class="co">  */</span>
+
+  display(Parser(<span class="st">&quot;(1 + 2) * 0 &quot;</span>).parse());
+
+  display(Parser(<span class="st">&quot;(1 + 2) * 0 + 2&quot;</span>).parse());
+}
+
+<span class="dt">void</span> testParser() {
+
+  testParserGood();
+}
+
+
+
+
+  
+<span class="dt">int</span> main() {
+  std::shared_ptr&lt;Exp&gt; e = std::make_shared&lt;IntExp&gt;(<span class="dv">5</span>);
+
+  testParser();
+  
+  <span class="kw">return</span> <span class="dv">1</span>;
+}</code></pre></div>
+</div>
+</body>
+</html>
