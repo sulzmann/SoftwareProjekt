@@ -1,0 +1,1292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Martin Sulzmann" />
+  <title>Einführung in C++ - Teil 1</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Einführung in C++ - Teil 1</h1>
+  <p class="author">
+Martin Sulzmann
+  </p>
+</div>
+<div id="inhalt" class="slide section level1">
+<h1>Inhalt</h1>
+<p>C++ kompakt</p>
+<ul>
+<li>IO Streams</li>
+<li>Namensräume</li>
+<li>Klassen</li>
+<li>Referenzparameter</li>
+<li>Überladung von Operatoren</li>
+<li>Typkonvertierungen</li>
+<li>Schachtelung von Blöcken und Deklarationen</li>
+<li>Ausnahmen</li>
+<li>STL</li>
+</ul>
+<p>Weitere Themen wie Polymorphie, kopieren von Objekten/Zeigern etc werden separat behandelt.</p>
+</div>
+<div id="warm-up" class="slide section level1">
+<h1>Warm-up</h1>
+<p>C++ erlaubt</p>
+<ul>
+<li><p>Variabledeklarationen gemischt mit Programmcode</p></li>
+<li><p>geschachtelte Codeblöcke</p></li>
+</ul>
+<p>Im Vergleich dazu in C müssen</p>
+<ul>
+<li><p>alle Variablendeklarationen am Funktionsanfang stehen</p></li>
+<li><p>keine Schachtelung von Codeblöcken</p></li>
+</ul>
+<p>Folgendes ist ein legales C++ Programm (aber nicht legal in C).</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> main() {
+  <span class="dt">int</span> x = <span class="dv">0</span>;
+  <span class="dt">int</span> j = <span class="dv">1</span>;
+
+  <span class="kw">for</span>(<span class="dt">int</span> i=<span class="dv">0</span>; i &lt; j; i++) {
+
+    {
+        <span class="dt">float</span> x;
+        x = <span class="fl">1.</span><span class="dv">0</span> + i;
+       
+    }
+
+  }
+  <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+<p>Aufgabe: Wandeln Sie obiges Program in ein äquivalentes C Program um.</p>
+</div>
+<div id="io-streams" class="slide section level1">
+<h1>IO Streams</h1>
+<p>IO Stream = Ein-/Ausgabe Strom = Sequenz von Ein-/Ausgaben</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt; </span><span class="co">// verlangt von Visual Studio</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="dt">int</span> main(<span class="dt">void</span>) {
+  cout &lt;&lt; <span class="st">&quot;Ihr Name bitte: </span><span class="ch">\n</span><span class="st">&quot;</span>;
+  string s;
+  cin &gt;&gt; s;
+  cout &lt;&lt; <span class="st">&quot;Aha, Sie heissen &quot;</span>;
+  cout &lt;&lt; s &lt;&lt; endl;
+}</code></pre></div>
+<ul>
+<li><code>&lt;&lt;</code> Ausgabestrom</li>
+<li><code>&gt;&gt;</code> Eingabestrom</li>
+<li><code>endl</code>
+<ul>
+<li>Neue Zeile</li>
+<li>&quot;flush stream&quot;</li>
+</ul></li>
+</ul>
+</div>
+<div id="io-streams-versus-printf" class="slide section level1">
+<h1>IO Streams versus printf</h1>
+<ul>
+<li>C printf mit Formatstring:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">printf(<span class="st">&quot;Int </span><span class="ch">%d</span><span class="st"> Float </span><span class="ch">%f</span><span class="st">&quot;</span>, x, y);</code></pre></div>
+<ul>
+<li>C++ out stream:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">cout &lt;&lt; <span class="st">&quot;Int &quot;</span> &lt;&lt; x &lt;&lt; <span class="st">&quot;Float &quot;</span> &lt;&lt; y;</code></pre></div>
+<p><a href="Basic%20IO">http://www.cplusplus.com/doc/tutorial/basic_io/</a></p>
+<p><a href="Advanced%20IO">http://www.cprogramming.com/tutorial/c++-iostreams.html</a></p>
+<h2 id="statische-compile-zeit-versus-dynamische-laufzeit-analyse">Statische (Compile-Zeit) versus dynamische (Laufzeit) Analyse</h2>
+<p>In C, rein dynamische Analyse des Formatstrings.</p>
+<p>In C++, statische Analyse, ermöglicht Dank der Überladung von <code>&lt;&lt;</code>.</p>
+</div>
+<div id="namensräume" class="slide section level1">
+<h1>Namensräume</h1>
+<p>Namensraum effektiv eine Klassendeklaration mit genau einer Instanz.</p>
+<ul>
+<li>Zur logischen Programmstrukturierung (ein neuer Scope).</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">namespace</span> NAME { <span class="dt">void</span> foo(<span class="dt">void</span>); ... }</code></pre></div>
+<ul>
+<li>Innerhalb Namesraum: Funktionen, Typedefinitionen, ..., aber nicht main</li>
+<li>Qualifizierter Zugriff</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"> NAME::foo();</code></pre></div>
+<ul>
+<li>Unqualifizierter Zugriff</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"> <span class="kw">using</span> <span class="kw">namespace</span> NAME;
+ foo();</code></pre></div>
+</div>
+<div id="namensräume-beispiel" class="slide section level1">
+<h1>Namensräume Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+<span class="co">// using namespace std;</span>
+
+<span class="dt">int</span> main(<span class="dt">void</span>) {
+  std::cout &lt;&lt; <span class="st">&quot;Ihr Name bitte: </span><span class="ch">\n</span><span class="st">&quot;</span>;
+  std::string s;
+  std::cin &gt;&gt; s;
+  std::cout &lt;&lt; <span class="st">&quot;Aha, Sie heissen &quot;</span>;
+  std::cout &lt;&lt; s &lt;&lt; std::endl;
+}</code></pre></div>
+<ul>
+<li>Typische Fehlermeldung</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+<span class="co">// using namespace std;</span>
+
+<span class="dt">int</span> main(<span class="dt">void</span>) {
+  std::cout &lt;&lt; <span class="st">&quot;Ihr Name bitte: </span><span class="ch">\n</span><span class="st">&quot;</span>;
+  string s;
+  ...
+}</code></pre></div>
+<pre><code>namespace.cpp: In function ‘int main()’:
+namespace.cpp:6: error: ‘string’ was not declared in this scope
+namespace.cpp:6: error: expected `;&#39; before ‘s’
+namespace.cpp:7: error: ‘s’ was not declared in this scope</code></pre>
+</div>
+<div id="klassen" class="slide section level1">
+<h1>Klassen</h1>
+<ul>
+<li><p>Konstruktoren (optional), Destruktor (optional), Methoden und Instanzvariablen (=&quot;member&quot;)</p></li>
+<li><p>Wir schauen uns die wichtigsten Konzepte an</p>
+<ul>
+<li>Überladung und Default Parameter</li>
+<li><code>this</code>, <code>new</code>, <code>delete</code></li>
+<li>Array von Objekten</li>
+<li>Kopieren und Zuweisung</li>
+<li>Vererbung
+<ul>
+<li>Zugriffsrechte</li>
+<li>Virtuelle Methoden</li>
+<li>Abstrakte Klassen</li>
+</ul></li>
+<li>Templates</li>
+<li>Sonstiges (statische Member, ...)</li>
+</ul></li>
+</ul>
+</div>
+<div id="klassen-beispiel" class="slide section level1">
+<h1>Klassen Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">class</span> Point {
+  <span class="dt">float</span> x, y;
+ <span class="kw">public</span>:
+  Point() {} <span class="co">// Default Konstrukor, implizit vorhanden</span>
+  Point(<span class="dt">float</span> x2, <span class="dt">float</span> y2) {
+    x = x2;  y = y2;
+  }
+  ~Point() {
+    cout &lt;&lt; <span class="st">&quot;das war&#39;s&quot;</span> &lt;&lt; endl;
+  }
+  <span class="dt">void</span> scale(<span class="dt">float</span> f) {
+    x = f * x; y = f * y;
+  }
+}; <span class="co">// anders wie in Java</span>
+
+<span class="dt">int</span> main() {
+  Point p = Point(<span class="fl">1.</span><span class="dv">0</span>,<span class="fl">2.</span><span class="dv">0</span>);
+}</code></pre></div>
+<p><em>Mehrere Statements pro Zeile aus Platzgründen</em></p>
+<ul>
+<li>Konstruktor - Anlegen einer Instanz (Objekt)
+<ul>
+<li>Kein <em>new</em>. Objekt p liegt auf dem Laufzeitstakc von main.</li>
+<li>Falls new, dann Verwaltung auf dem Heap. Speicherfreigabe weitestgehend unter Kontrolle des Programmierers.</li>
+</ul></li>
+<li>Destruktor - Aufräumen (Aufruf) sobald Block in dem Objekt deklariert wurde verlassen wird
+<ul>
+<li>In etwa vergleichbar mit &quot;finalize&quot; in Java</li>
+<li>Wird in C++ zur (manuellen) Speicherverwaltung benutzt.</li>
+<li>Im Falle von dynamischen (Zeiger) Objekten kann Destruktor explizit aufgerufen werden.</li>
+</ul></li>
+</ul>
+</div>
+<div id="klassen-beispiel-2" class="slide section level1">
+<h1>Klassen Beispiel (2)</h1>
+<p>In der Regel aufgeteilt in Schnittstelle (header) und Implementierung (source)</p>
+<ul>
+<li><code>point2.h</code></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#ifndef __POINT__</span>
+<span class="ot">#define __POINT__</span>
+
+<span class="kw">class</span> Point {
+  <span class="dt">float</span> x, y;
+ <span class="kw">public</span>:
+  Point(<span class="dt">float</span> x2, <span class="dt">float</span> y2);
+  ~Point();
+  <span class="dt">void</span> scale(<span class="dt">float</span> f);
+}; 
+
+<span class="ot">#endif </span><span class="co">// __POINT__</span></code></pre></div>
+<ul>
+<li><code>point2.cpp</code></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &quot;point2.h&quot;</span>
+
+<span class="ot">#include &lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+Point::Point(<span class="dt">float</span> x2, <span class="dt">float</span> y2) {
+    x = x2;  y = y2;
+}
+Point::~Point() {
+    cout &lt;&lt; <span class="st">&quot;das war&#39;s&quot;</span> &lt;&lt; endl;
+}
+<span class="dt">void</span> Point::scale(<span class="dt">float</span> f) {
+    x = f * x; y = f * y;
+}</code></pre></div>
+<ul>
+<li><code>mainPoint.cpp</code></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &quot;point2.h&quot;</span>
+
+<span class="dt">int</span> main() {
+  Point p = Point(<span class="fl">1.</span><span class="dv">0</span>,<span class="fl">2.</span><span class="dv">0</span>);
+}</code></pre></div>
+</div>
+<div id="klassen-beispiel-3" class="slide section level1">
+<h1>Klassen Beispiel (3)</h1>
+<ul>
+<li><p>Header/Source Files in entsprechende Ordner (im Falle von Visual Studio)</p></li>
+<li><p>Bauen via der Kommandozeile</p></li>
+</ul>
+<pre><code>&gt; g++ -c point2.cpp
+&gt; g++ -c mainPoint.cpp
+&gt; g++ point2.o mainPoint.o -o mainPoint.exe</code></pre>
+<ul>
+<li>Schöner ist natürlich ein Makefile</li>
+</ul>
+</div>
+<div id="klassen---überladung-und-default-parameter" class="slide section level1">
+<h1>Klassen - Überladung und Default Parameter</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Point {
+  ...
+  Point(<span class="dt">int</span> z = <span class="dv">0</span>);
+  Point(<span class="dt">float</span> x2, <span class="dt">float</span> y2);
+};</code></pre></div>
+<ul>
+<li><p>Überladung des Konstruktors</p></li>
+<li><p>Auswahl des Kandidaten muss eindeutig sein</p></li>
+<li><p>Default Parameter immer von links</p></li>
+<li><p>Überladung und Default Parameter kann auch auf Klassenmethoden und Funktionen angewandt werden</p></li>
+<li><p>Beispiel</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">class</span> Point {
+  <span class="dt">float</span> x, y;
+ <span class="kw">public</span>:
+  Point(<span class="dt">int</span> z = <span class="dv">0</span>) {
+    x = z; y = z; 
+  }
+  Point(<span class="dt">float</span> x2, <span class="dt">float</span> y2) {
+    x = x2;  y = y2; 
+  }
+  ~Point() {
+    cout &lt;&lt; <span class="st">&quot;das war&#39;s &quot;</span> &lt;&lt; endl;
+  }
+  <span class="dt">void</span> scale(<span class="dt">float</span> f) {
+    x = f * x; y = f * y;
+  }
+}; 
+
+<span class="dt">int</span> main() {
+  Point p = Point(<span class="fl">1.</span><span class="dv">0</span>,<span class="fl">2.</span><span class="dv">0</span>);
+  Point p2 = Point(<span class="dv">1</span>);
+  Point p3;
+}</code></pre></div>
+</div>
+<div id="klassen---dynamische-objekte-new-delete" class="slide section level1">
+<h1>Klassen - Dynamische Objekte: <code>new</code>, <code>delete</code></h1>
+<p>Wir betrachten hier <em>dynamische</em> (Zeiger) Objekte</p>
+<ul>
+<li><code>new</code>: Allokiere Speicher, anlegen des dynamischen Objekts durch Konstruktoraufruf</li>
+<li><code>delete</code>: Destruktoraufruf, freigeben des Speichers des dynamischen Objekts</li>
+<li><code>this</code>: Zugriff auf member, nur innerhalb von nicht-statischen Membern</li>
+</ul>
+<h2 id="einfaches-beispiel-mit-int-objekten">Einfaches Beispiel mit <code>int</code> Objekten</h2>
+<p>Wiederholung von bekannten C Konzepten im C++ Gewand.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> f(<span class="dt">void</span>) {
+  <span class="dt">int</span> x = <span class="dv">2</span>;
+  <span class="dt">int</span>* p = <span class="kw">new</span> <span class="dt">int</span>(<span class="dv">3</span>);
+}</code></pre></div>
+<ul>
+<li><p><code>x</code> ist eine Integervariable</p></li>
+<li><p><code>p</code> ist eine Zeigervariable, verweist auf Integerwerte</p></li>
+<li><p><code>new int(3)</code></p>
+<ul>
+<li>Anlegen (Allokation) von Speicher für Integerwert</li>
+<li>Liefert Adresse auf Speicher, zugewiesen hier an <code>p</code></li>
+</ul></li>
+<li><p>Beachte:</p>
+<ul>
+<li><p>Speicher belegt von Variablen <code>x</code> und <code>p</code> wird aufgeräumt, sobald die Funktion verlassen wird.</p></li>
+<li><p>Momentan mal, <code>p</code> verweist auf eine Speicheradrese. Dieser Speicher wird <em>nicht</em> automatisch aufgeräumt.</p></li>
+<li><p>In C++ ist der Programmierer verantwortlich für das Aufräumen von dynamisch (durch <code>new</code>) angelegten Speichers mit Hilfe von <code>delete</code>:</p></li>
+</ul></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> f(<span class="dt">void</span>) {
+  <span class="dt">int</span> x = <span class="dv">2</span>;
+  <span class="dt">int</span>* p = <span class="kw">new</span> <span class="dt">int</span>(<span class="dv">3</span>);
+  <span class="kw">delete</span> p;
+}</code></pre></div>
+<h2 id="erweitertes-beispiel">Erweitertes Beispiel</h2>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> MyInt {
+ <span class="kw">public</span>: 
+  MyInt(<span class="dt">int</span> x = <span class="dv">0</span>) {
+    p = <span class="kw">new</span> <span class="dt">int</span>(x);
+  }
+  ~MyInt() { <span class="kw">delete</span> p; }
+ <span class="kw">private</span>:
+  <span class="dt">int</span>* p;
+};</code></pre></div>
+<ul>
+<li><p><code>MyInt</code> beschreibt Integerwerte</p></li>
+<li><p>Interne Repräsentation als Zeiger auf Integerwert.</p></li>
+<li><p>Beispiel:</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> g(<span class="dt">void</span>) {
+   MyInt i1;
+   MyInt i2 = MyInt(<span class="dv">3</span>);
+}</code></pre></div>
+<ul>
+<li><p><code>i1</code> entspricht 0 (Konstruktor mit Defaultparameter!) und <code>i2</code> entspricht 3</p></li>
+<li><p>Speicher belegt von <code>i1</code> und <code>i2</code> wird aufgefäumt nach Verlassen der Funktion</p></li>
+<li><p>Was passiert mit dem innerhalb des Konstruktors (dynamisch) angelegten Speichers? Fehlt nicht ein <code>delete</code>? Richtig. Aber wo und wann?</p></li>
+<li><p>Konvention/Vorgehen:</p>
+<ul>
+<li>Der Destruktor wird aufgerufen, sobald der Lebensbereich einer Variable endet (Annahme: Variable ist Objekt einer Klasse mit Destruktor)</li>
+<li>In unserem Fall, Aufruf von <code>delete p</code> innerhalb des Destruktors von <code>MyInt</code></li>
+</ul></li>
+</ul>
+<h2 id="nochmal-dynamische-objekte">Nochmal dynamische Objekte</h2>
+<p>Betrachte</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> h(<span class="dt">void</span>) {
+   MyInt i;
+   MyInt* p2 = <span class="kw">new</span> MyInt(<span class="dv">3</span>);
+}</code></pre></div>
+<ul>
+<li><p><code>i</code> ein Objekt der Klasse <code>MyInt</code> (mit Integerwert 0)</p></li>
+<li><p><code>p</code> ein Zeiger auf ein Objekt der Klasse <code>MyInt</code></p></li>
+<li><p>Speicherlayout von <code>MyInt* p2 = new MyInt(3);</code></p></li>
+</ul>
+<pre><code>
+-------------         -----------        -----
+| MyInt* p2 | -----&gt;  | int* p  | ----&gt;  | 3 |
+-------------         ----------         -----
+</code></pre>
+<ul>
+<li><p>Was passiert bei Verlassen der Funktion <code>h</code>?</p>
+<ul>
+<li><p>Speicher belegt von <code>i</code> wird freigegeben. Destruktor wird auf Objekt <code>i</code> aufgefrufen</p></li>
+<li><p>Speicher belegt von <code>p2</code> wird freigegeben.</p></li>
+<li><p>Was ist mit dem dynamischen angelegten Speicher durch <code>new MyInt(3)</code>? Erinnerung: <code>delete</code> muss <em>manuell</em> aufgerufen werden (was hier nicht geschieht).</p></li>
+<li><p>Deshalb wird der Speicher nicht freigegeben und auch nicht der Destruktor aufgerufen.</p></li>
+<li><p>Zusammengefasst wird haben ein Speicherleck: Der von <code>new MyInt(3)</code> und <code>new int(x)</code> (wobei <code>x</code> gleich 3) belegte Speicher wird nicht freigeben.</p></li>
+</ul></li>
+</ul>
+<p>Vermeiden des Speicherlecks durch explizites <code>delete</code>:</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> h2(<span class="dt">void</span>) {
+   MyInt i;
+   MyInt* p2 = <span class="kw">new</span> MyInt(<span class="dv">3</span>);
+   <span class="kw">delete</span> p2;
+}</code></pre></div>
+</div>
+<div id="klassen---array-von-objekten" class="slide section level1">
+<h1>Klassen - Array von Objekten</h1>
+<ul>
+<li>Allokation: Annahme Default Konstruktor vorhanden</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">SomeClass* c = <span class="kw">new</span> SomeClass[<span class="dv">5</span>];  <span class="co">// Zeiger auf erstes Element</span></code></pre></div>
+<ul>
+<li>Deallokation:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">delete</span>[] c; <span class="co">// NICHT delete c</span></code></pre></div>
+<p>Für jedes Element zuerst Aufruf Destruktor, dann geben Speicher frei.</p>
+<ul>
+<li>Beispiel: Array von Zeigern, bei Freigabe Reihenfolge wichtig</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="dt">int</span>** ptr = <span class="kw">new</span> <span class="dt">int</span>*[<span class="dv">4</span>];
+  <span class="kw">for</span> (<span class="dt">int</span> i=<span class="dv">0</span>; i&lt;<span class="dv">4</span>; i++)
+      ptr[i] = <span class="kw">new</span> <span class="dt">int</span>(i);
+     <span class="co">// Freigabe Speicherplatz auf die Pointer verweisen</span>
+  <span class="kw">for</span> (<span class="dt">int</span> i=<span class="dv">0</span>; i&lt;<span class="dv">4</span>; i++)
+      <span class="kw">delete</span> ptr[i];
+  <span class="kw">delete</span>[] ptr; 
+  <span class="co">// Freigabe der durch die Pointer belegte Speicherplatz</span></code></pre></div>
+</div>
+<div id="klassen---stack-beispiel" class="slide section level1">
+<h1>Klassen - Stack Beispiel</h1>
+<p>Betrachte</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Stack {
+  <span class="kw">public</span>:
+  Stack(<span class="dt">int</span> size) { 
+     <span class="kw">this</span>-&gt;size = size; st = <span class="kw">new</span> <span class="dt">char</span>[size];
+  }
+  ~Stack() { <span class="kw">delete</span> st; }
+  <span class="kw">private</span>:
+     <span class="dt">char</span>* st; <span class="dt">int</span> size;
+};
+<span class="dt">int</span> main() {
+  Stack* s = <span class="kw">new</span> Stack(<span class="dv">5</span>);
+  <span class="kw">delete</span> s; <span class="co">// Geschachtelter delete Aufruf!</span>
+  Stack* s1 = <span class="kw">new</span> Stack(<span class="dv">5</span>);
+}</code></pre></div>
+<p><em>Warnung: Programm ist buggy. Erklärung folgt.</em></p>
+<p>Hier die korrigierte Version.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Stack {
+  <span class="kw">public</span>:
+  Stack(<span class="dt">int</span> size) { 
+     <span class="kw">this</span>-&gt;size = size; st = <span class="kw">new</span> <span class="dt">char</span>[size];
+  }
+  ~Stack() { 
+     <span class="co">// delete st; </span>
+     <span class="kw">delete</span>[] st; <span class="co">// Loeschen des gesamten Arrays</span>
+  }
+  <span class="kw">private</span>:
+     <span class="dt">char</span>* st; <span class="dt">int</span> size;
+};
+<span class="dt">int</span> main() {
+  Stack* s = <span class="kw">new</span> Stack(<span class="dv">5</span>);
+  <span class="kw">delete</span> s; <span class="co">// Geschachtelter delete Aufruf!</span>
+  Stack* s1 = <span class="kw">new</span> Stack(<span class="dv">5</span>);
+  <span class="kw">delete</span> s1; <span class="co">// Manuelle Speicherverwaltung </span>
+}</code></pre></div>
+<h2 id="dynamisches-speicherlayout-eines-stack-objektes">Dynamisches Speicherlayout eines Stack Objektes</h2>
+<ul>
+<li><code>Stack* s = new Stack(5);</code></li>
+</ul>
+<pre><code>
+________________
+| int size = 5  |
+----------------                    -----------------------
+| int* size     | ---------------&gt;  | Array der Groesse 5 |
+-----------------                   -----------------------
+</code></pre>
+<ul>
+<li><code>delete s</code>
+<ul>
+<li>Im Destruktor, Speicher des Arrays freigeben</li>
+<li>Danach, wird der Speicher des Stack Objekts freigegeben</li>
+</ul></li>
+</ul>
+<h2 id="initialisierung-von-objekten">Initialisierung von Objekten</h2>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> main() {
+  Stack* s1 = <span class="kw">new</span> Stack(<span class="dv">5</span>);
+  Stack s2 = Stack(<span class="dv">5</span>);
+  <span class="kw">delete</span> s1; 
+}</code></pre></div>
+<ul>
+<li><p><code>new</code> im Zusammenhang von dynamischen (Zeiger) Objekten</p></li>
+<li><p><code>delete s1</code></p>
+<ul>
+<li>Aufruf des Destruktors</li>
+<li>Freigeben des belegten Speicherbereiches</li>
+</ul></li>
+<li><p>Destruktor von <code>s2</code> wird aufgerufen, sobald der Lebensbereich von <code>s2</code> endet (am Ende der <code>main</code> Funktion)</p></li>
+</ul>
+<h2 id="typische-probleme-der-manuellen-speicherverwaltung">Typische Probleme der manuellen Speicherverwaltung</h2>
+<h3 id="speicherleck-zu-wenige-deletes">Speicherleck (&quot;zu wenige deletes&quot;)</h3>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> main() {
+  Stack* s1 = <span class="kw">new</span> Stack(<span class="dv">5</span>);
+  <span class="co">// delete s1; </span>
+}</code></pre></div>
+<h3 id="absturz-segmentation-fault-versuch-speicherbereich-zweimal-freizugeben-zu-viele-deletes">&quot;Absturz&quot; (segmentation fault), Versuch Speicherbereich zweimal freizugeben (&quot;zu viele deletes&quot;)</h3>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> main() {
+  Stack* s1 = <span class="kw">new</span> Stack(<span class="dv">5</span>);
+  Stack* s2 = s1;
+  <span class="kw">delete</span> s1; 
+  <span class="kw">delete</span> s2;
+}</code></pre></div>
+</div>
+<div id="klassen---vererbung-und-zugriffsrechte" class="slide section level1">
+<h1>Klassen - Vererbung und Zugriffsrechte</h1>
+<ul>
+<li>Vererbung von Methoden und Variablen (Kinder -&gt; Eltern)</li>
+<li><p>Kontrolle der der Zugriffsrechte auf Methoden und Variablen via <code>protected</code>, <code>private</code> and <code>public</code></p></li>
+<li><p>Basisklasse</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> A 
+{
+<span class="kw">public</span>:
+    <span class="dt">int</span> x; <span class="co">// Alle</span>
+<span class="kw">protected</span>:
+    <span class="dt">int</span> y; <span class="co">// Nur Kinder</span>
+<span class="kw">private</span>:   <span class="co">// Nur A</span>
+    <span class="dt">int</span> z;
+};</code></pre></div>
+<ul>
+<li>Vererbung mit <code>public</code></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> B : <span class="kw">public</span> A
+{
+    <span class="co">// x ist public</span>
+    <span class="co">// y ist protected</span>
+    <span class="co">// z kein Zurgriff via B</span>
+};</code></pre></div>
+<ul>
+<li>Vererbung mit <code>protected</code></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> C : <span class="kw">protected</span> A
+{
+    <span class="co">// x ist protected</span>
+    <span class="co">// y ist protected</span>
+    <span class="co">// z kein Zugriff via C</span>
+};</code></pre></div>
+<ul>
+<li>Vererbung mit <code>private</code></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> D : <span class="kw">private</span> A
+{
+    <span class="co">// x ist private</span>
+    <span class="co">// y ist private</span>
+    <span class="co">// z kein Zugriff via D</span>
+};</code></pre></div>
+</div>
+<div id="klassen---friend-zugriff-auf-private-member" class="slide section level1">
+<h1>Klassen - friend Zugriff auf <code>private</code> Member</h1>
+<ul>
+<li>Eng gekoppelte Klassen benötigen gegenseitigen Zugriff.</li>
+<li><code>friend</code> Angabe gewährt Zugriff, darf sowohl im privaten als auch öffentlichen Teil einer Klasse stehen.</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">    <span class="kw">class</span> Vector {
+      <span class="kw">friend</span> <span class="kw">class</span> Matrix;      <span class="co">// Alle Methoden von Matrix duerfen</span>
+                    <span class="co">// auf den folgenden Bereich</span>
+                    <span class="co">// zugreifen</span>
+    };
+
+    <span class="kw">class</span> Vector {
+      <span class="kw">friend</span> <span class="dt">int</span> Matrix::mult(Vector&amp; v);
+                    <span class="co">// Methode mult(Vector&amp; v) von</span>
+                    <span class="co">// Matrix darf zugreifen</span>
+    };</code></pre></div>
+</div>
+<div id="klassen---superklassenmember-initialisierung" class="slide section level1">
+<h1>Klassen - Superklassen/Member Initialisierung</h1>
+<ul>
+<li>Basisklasse</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Vehicle { 
+  <span class="dt">int</span> wheels;
+<span class="kw">public</span>:
+  Vehicle(<span class="dt">int</span> w=<span class="dv">4</span>):wheels(w) {}
+  <span class="dt">int</span> max() {<span class="kw">return</span> <span class="dv">60</span>;}
+};</code></pre></div>
+<ul>
+<li>Subklasse</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Bicycle : <span class="kw">public</span> Vehicle {
+  <span class="dt">bool</span> panniers;
+<span class="kw">public</span>:
+  Bicycle(<span class="dt">bool</span> p=<span class="kw">true</span>):Vehicle(<span class="dv">2</span>),panniers(p) {}
+  <span class="dt">int</span> max() {<span class="kw">return</span> panniers ? <span class="dv">12</span> : <span class="dv">15</span>;}
+};</code></pre></div>
+<ul>
+<li>Konstruktor <code>Bicycle</code> ruft Superklassenkonstruktor <code>Vehicle</code> auf</li>
+<li>Initialisierung von Member <code>panniers</code> mit Wert <code>p</code></li>
+</ul>
+</div>
+<div id="klassen---vererbung-und-abgeleitete-methoden" class="slide section level1">
+<h1>Klassen - Vererbung und abgeleitete Methoden</h1>
+<ul>
+<li>Methode <code>max</code> in Basisklasse</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Vehicle { 
+  ...
+  <span class="dt">int</span> max() {<span class="kw">return</span> <span class="dv">60</span>;}
+};</code></pre></div>
+<ul>
+<li>Methode <code>max</code> in Subklasse</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Bicycle : <span class="kw">public</span> Vehicle {
+  ...
+  <span class="dt">int</span> max() {<span class="kw">return</span> panniers ? <span class="dv">12</span> : <span class="dv">15</span>;}
+};</code></pre></div>
+<ul>
+<li>Welche <code>max</code> Methode wird aufgerufen?</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> print_speed(Vehicle &amp;v, Bicycle &amp;b) {
+  cout &lt;&lt; v.max() &lt;&lt; <span class="st">&quot; &quot;</span> &lt;&lt; b.max() &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>;
+}
+<span class="dt">int</span> main() {
+    Bicycle b = Bicycle(<span class="kw">true</span>);
+    print_speed(b,b); 
+}</code></pre></div>
+<ul>
+<li><p>Ausgabe <code>60 12</code> und <em>nicht</em> <code>12 12</code></p></li>
+<li><p>Per Default, Memberfunktionen werden ausgewählt basierend auf dem statischen Typ</p>
+<ul>
+<li>Dynamischer Typ <code>Bicyle</code></li>
+<li><code>print_speed</code> erwartet (statisch) als erstes Argument <code>Vehicle</code></li>
+</ul></li>
+<li><p>C++ verhält sich verschieden von Java (immer Methodenauswahl basierend auf dem statischen Typ)</p></li>
+<li><p><code>virtual</code> Methoden garantieren dynamische Methodenauswahl</p></li>
+</ul>
+</div>
+<div id="klassen---virtuelle-methoden" class="slide section level1">
+<h1>Klassen - Virtuelle Methoden</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Vehicle {
+  <span class="dt">int</span> wheels;
+<span class="kw">public</span>:
+  Vehicle(<span class="dt">int</span> w=<span class="dv">4</span>):wheels(w) {}
+  <span class="kw">virtual</span> <span class="dt">int</span> max() {<span class="kw">return</span> <span class="dv">60</span>;} <span class="co">// virtuelle Methode</span>
+};
+<span class="kw">class</span> Bicycle : <span class="kw">public</span> Vehicle {
+  <span class="dt">bool</span> panniers;
+<span class="kw">public</span>:
+  Bicycle(<span class="dt">bool</span> p=<span class="kw">true</span>):Vehicle(<span class="dv">2</span>),panniers(p) {}
+  <span class="dt">int</span> max() {<span class="kw">return</span> panniers ? <span class="dv">12</span> : <span class="dv">15</span>;}
+};</code></pre></div>
+<ul>
+<li><code>virtual</code> nur in Basisklasse notwendig</li>
+<li>Compiler generiert eine virtuelle Methodentabelle (vtable)</li>
+<li>vtable hat Zeiger auf die korrekte Methode für jedes Objekt</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> print_speed(Vehicle* v, Bicycle* b) {
+  cout &lt;&lt; v-&gt;max() &lt;&lt; <span class="st">&quot; &quot;</span> &lt;&lt; b-&gt;max() &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>;
+}
+<span class="dt">int</span> main() {
+    Bicycle* b = <span class="kw">new</span> Bicycle(<span class="kw">true</span>);
+    print_speed(b,b);
+}</code></pre></div>
+<ul>
+<li>Ausgabe jetzt <code>12 12</code></li>
+<li>(Virtuelle) Methodenauswahl basierend auf dem dynamischen Typ</li>
+<li>Bedeutet wir müssen Objekte dynamisch anlegen, sprich ein Zeiger auf ein Objekt</li>
+</ul>
+</div>
+<div id="klassen---abstrakte-klassen" class="slide section level1">
+<h1>Klassen - Abstrakte Klassen</h1>
+<ul>
+<li>Basisklasse stellt nur das Interface dar <em>abstrakte Klasse</em></li>
+<li>Alle Methoden virtuell und nicht definiert (=0)</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Shape {
+  <span class="kw">public</span>:
+  <span class="kw">virtual</span> <span class="dt">void</span> draw() = <span class="dv">0</span>;
+};</code></pre></div>
+<ul>
+<li>Ein Objekt <code>Shape</code> kann nicht definiert werden</li>
+<li>Eigentliche Implementierung dann in der abgeleiteten Klasse</li>
+</ul>
+</div>
+<div id="klassen---templates" class="slide section level1">
+<h1>Klassen - Templates</h1>
+<p>Ähnlich wie generics in Java.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+<span class="kw">class</span> Elem {
+  <span class="kw">public</span>:
+   T x;
+  Elem(T x) { <span class="kw">this</span>-&gt;x = x; }
+};
+
+<span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+<span class="dt">void</span> replace(Elem&lt;T&gt; e, T x) {
+  e.x = x;
+}
+<span class="dt">int</span> main() {
+  Elem&lt;<span class="dt">int</span>&gt; e = Elem&lt;<span class="dt">int</span>&gt;(<span class="dv">1</span>);
+  replace&lt;<span class="dt">int</span>&gt;(e, <span class="dv">2</span>);
+}</code></pre></div>
+<p>Auch Funktion können Template Parameter haben</p>
+</div>
+<div id="klassen---templates-2" class="slide section level1">
+<h1>Klassen - Templates (2)</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">template</span>&lt;<span class="kw">typename</span> A, <span class="kw">typename</span> B&gt;
+<span class="kw">class</span> Pair {
+ <span class="kw">private</span>:
+  A a;
+  B b;
+ <span class="kw">public</span>:
+  Pair(A a2, B b2) : a(a2), b(b2) {}
+  A fst() { <span class="kw">return</span> a;}
+  B snd() { <span class="kw">return</span> b;}
+};
+
+<span class="dt">int</span> main() {
+  Pair&lt;<span class="dt">int</span>,<span class="dt">float</span>&gt; p = Pair&lt;<span class="dt">int</span>,<span class="dt">float</span>&gt;(<span class="dv">1</span>,<span class="fl">2.</span><span class="dv">0</span>);
+  Pair&lt;<span class="dt">bool</span>,Pair&lt;<span class="dt">int</span>,<span class="dt">float</span>&gt; &gt; p2 = Pair&lt;<span class="dt">bool</span>,Pair&lt;<span class="dt">int</span>,<span class="dt">float</span>&gt; &gt;(<span class="kw">true</span>,p);
+}</code></pre></div>
+<ul>
+<li>Mehrere Template Parameter</li>
+<li>Geschachtelte Template Instanziierung</li>
+<li><code>&gt; &gt;</code> wichtig weil Parser sonst mit Stream Notation durcheinander kommt <code>&gt;&gt;</code></li>
+</ul>
+</div>
+<div id="klassen---sonstiges" class="slide section level1">
+<h1>Klassen - Sonstiges</h1>
+<h2 id="statische-member">Statische Member</h2>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Point {
+  ...
+  <span class="dt">static</span> <span class="dt">int</span> counter;
+  <span class="dt">static</span> <span class="dt">int</span> getCounter() {
+    <span class="kw">return</span> counter;
+  }
+}</code></pre></div>
+<ul>
+<li>Jedes Objekt der Klasse <code>Point</code> referenziert auf eine Instanz von <code>counter</code></li>
+<li>Initialisierung von statischer Variable ausserhalb Klasse</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">int</span> Point::counter = <span class="dv">0</span>;</code></pre></div>
+<ul>
+<li><p>Statische Methode darf nicht abhängig von nicht-statischen Werten sein</p></li>
+<li><p>Zugriff von ausserhalb</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  cout &lt;&lt; Point::counter;
+  cout &lt;&lt; Point::getCounter();</code></pre></div>
+<ul>
+<li>Beispiel</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">class</span> Point {
+  <span class="dt">float</span> x, y;
+  <span class="dt">static</span> <span class="dt">int</span> counter;
+ <span class="kw">public</span>:
+  Point(<span class="dt">float</span> x2, <span class="dt">float</span> y2) {
+    x = x2;  y = y2; counter++;
+  }
+  <span class="dt">static</span> <span class="dt">int</span> getCounter() {
+    <span class="kw">return</span> counter;
+  }
+};
+
+<span class="dt">int</span> Point::counter = <span class="dv">0</span>;
+
+<span class="dt">int</span> main() {
+  Point p = Point(<span class="fl">1.</span><span class="dv">0</span>,<span class="fl">2.</span><span class="dv">0</span>);
+  Point p2 = Point(<span class="fl">1.</span><span class="dv">0</span>,<span class="fl">2.</span><span class="dv">0</span>);
+  cout &lt;&lt; <span class="st">&quot;Anzahl von Points:&quot;</span> &lt;&lt; Point::getCounter() &lt;&lt; endl;
+}</code></pre></div>
+<h2 id="struct-versus-class"><code>struct</code> versus <code>class</code></h2>
+<ul>
+<li><code>struct</code>: Alle Member sind <code>public</code></li>
+<li><code>class</code>: Alle Member per Default <code>private</code></li>
+</ul>
+<h2 id="konstante-member-deklaration-const">Konstante Member Deklaration <code>const</code></h2>
+<ul>
+<li>Zustand wird nicht verändert</li>
+<li>Hinweis für Compiler und Benutzer</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">float</span> Point::getX() <span class="dt">const</span> { <span class="kw">return</span> x; }</code></pre></div>
+<h2 id="initialisierung-von-member-objekten">Initialisierung von Member Objekten</h2>
+<ul>
+<li>Klassisch in Rumpf des Konstruktors</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Some {
+  <span class="kw">public</span>:
+  Other x;
+  Other z;
+  Some (Other y) { x = y; z = y; }
+};</code></pre></div>
+<ul>
+<li>Als Teil des Konstruktoraufrufs</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Some {
+  <span class="kw">public</span>:
+  <span class="dt">const</span> Other x;
+  Other&amp; z;
+  Some (Other y) : x(y), z(y) {}
+  <span class="co">// Some (Other y) { x = y; z = y; }</span>
+  <span class="co">// geht hier nicht</span>
+};</code></pre></div>
+<p>Wie Beispiel zeigt, Initialisierung als Teil des Konstruktoraufrufs notwendig falls const oder reference Member.</p>
+<h2 id="aufruf-von-superklassen-konstruktor">Aufruf von Superklassen Konstruktor</h2>
+<ul>
+<li>Default (Argumentenlos) Konstruktor wird aufgerufen</li>
+<li>Expliziter Superklassen Konstruktor Aufruf möglich</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Super {
+  ...
+  Super(<span class="dt">int</span>) {}
+};
+<span class="kw">class</span> Sub : <span class="kw">public</span> Super {
+  ...
+  Sub(<span class="dt">int</span> x) : Super(x) {}
+};</code></pre></div>
+<ul>
+<li>Untenstehendes Programm liefert bei Ausführung</li>
+</ul>
+<pre><code>Super
+Sub
+SuperSuper
+SubSub</code></pre>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include&lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">class</span> Super {
+ <span class="kw">public</span>:
+  Super() { cout &lt;&lt; <span class="st">&quot;Super&quot;</span> &lt;&lt; endl; }
+  Super(<span class="dt">int</span>) { cout &lt;&lt; <span class="st">&quot;SuperSuper&quot;</span> &lt;&lt; endl; }
+};
+
+<span class="kw">class</span> Sub : <span class="kw">public</span> Super {
+ <span class="kw">public</span>:
+  Sub() { cout &lt;&lt; <span class="st">&quot;Sub&quot;</span> &lt;&lt; endl; }
+  Sub(<span class="dt">int</span> x) : Super(x) { cout &lt;&lt; <span class="st">&quot;SubSub&quot;</span> &lt;&lt; endl; }
+};
+
+<span class="dt">int</span> main() {
+  Sub x;
+
+  Sub y = Sub(<span class="dv">1</span>);
+  
+}</code></pre></div>
+<h2 id="explicit-konstruktor"><code>explicit</code> Konstruktor</h2>
+<p>Vermeidet implizite Typkonvertierung bei Konstruktoraufruf</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> C {
+  <span class="kw">public</span>:
+  C(<span class="dt">int</span> x) : y(x) {}
+  <span class="co">// explicit C(int x) : y(x) {}</span>
+  <span class="dt">int</span> y;
+};
+<span class="dt">void</span> f(C c) {}
+<span class="dt">int</span> main() {
+  f(<span class="dv">1</span>);
+}</code></pre></div>
+<ul>
+<li><code>f</code> erwartet ein C, aber wir übergeben eine &lt;</li>
+<li>Kompiliert und läuft ohne Fehler!</li>
+<li>Implizite Konvertierung via dem Konstruktor</li>
+<li>Kann durch Annotation <code>explicit</code> vermieden werden
+<ul>
+<li>Ersetze Konstruktor mit Kommentar, dann Fehlermeldung bei Kompilierung</li>
+</ul></li>
+</ul>
+<h2 id="virtuelle-destruktoren">Virtuelle Destruktoren</h2>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="kw">class</span> Base {
+  <span class="kw">public</span>:
+  Base() {cout&lt;&lt;<span class="st">&quot;BaseKon</span><span class="ch">\n</span><span class="st">&quot;</span>;}
+  ~Base() {cout&lt;&lt;<span class="st">&quot;BaseDe</span><span class="ch">\n</span><span class="st">&quot;</span>;}
+  <span class="co">// virtual ~Base() {cout&lt;&lt;&quot;BaseDe\n&quot;;}</span>
+};
+
+<span class="kw">class</span> Derived : <span class="kw">public</span> Base {
+  <span class="kw">public</span>:
+  Derived() {cout&lt;&lt;<span class="st">&quot;DerivedKon</span><span class="ch">\n</span><span class="st">&quot;</span>;}
+  ~Derived() {cout&lt;&lt;<span class="st">&quot;DerivedDe</span><span class="ch">\n</span><span class="st">&quot;</span>;}
+};
+
+<span class="dt">int</span> main()
+{
+    Base* base = <span class="kw">new</span> Derived();
+    <span class="kw">delete</span> base;
+}</code></pre></div>
+<ul>
+<li>Ausgabe</li>
+</ul>
+<pre><code>BaseKon
+DerivedKon
+BaseDe</code></pre>
+<ul>
+<li>Mit virtuellen Destruktor Ausgabe</li>
+</ul>
+<pre><code>BaseKon
+DerivedKon
+DerivedDe
+BaseDe</code></pre>
+</div>
+<div id="referenzparameter" class="slide section level1">
+<h1>Referenzparameter</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> increment(<span class="dt">int</span>&amp; x) {
+ x++;
+}</code></pre></div>
+<ul>
+<li><code>int&amp; x</code> deklarierte Referenzübergabe</li>
+<li>Ähnelt einem Pointer, aber
+<ul>
+<li>Referenz kann nicht überschrieben werden,</li>
+<li>keine Dereferenzierung notwendig</li>
+</ul></li>
+<li>Regel
+<ul>
+<li>Referenz für Funktionsparameter und return Wert</li>
+<li>Pointer für dynamische Datenstrukturen</li>
+</ul></li>
+</ul>
+</div>
+<div id="pointer-versus-referenz" class="slide section level1">
+<h1>Pointer versus Referenz</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> increment2(<span class="dt">int</span>* x) {
+ *x++;
+}
+
+<span class="dt">void</span> increment(<span class="dt">int</span>&amp; x) {
+ x++;
+}
+
+<span class="dt">int</span> main() {
+  <span class="dt">int</span> x;
+  increment(x);
+  increment2(&amp;x);
+}</code></pre></div>
+<p>Implizite Seiteneffekte durch Pointer und Referenzen</p>
+</div>
+<div id="kodierrichtline-referenzen-und-pointer" class="slide section level1">
+<h1>Kodierrichtline Referenzen und Pointer</h1>
+<ul>
+<li>Falls Seiteneffekt benutze Pointer</li>
+<li>Bei Aufruf klar erkennbar, dass Wert womöglich überschrieben wird</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  increment2(&amp;x);  <span class="co">// Adressoperator</span></code></pre></div>
+<ul>
+<li>Referenz nur als Konstante</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> print(<span class="dt">const</span> bigData&amp; x) {
+...
+}</code></pre></div>
+<ul>
+<li>Übergabe als Referenz aus Effiziensgründen</li>
+</ul>
+</div>
+<div id="überladung-von-operatoren" class="slide section level1">
+<h1>Überladung von Operatoren</h1>
+<ul>
+<li>So gut wie alle Operatoren können überladen werden:</li>
+</ul>
+<pre><code> +, *, =, ++, &lt;&lt;, [], ...</code></pre>
+<ul>
+<li>Betrachte <code>MyInt</code></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> MyInt {
+
+  <span class="kw">friend</span> ostream&amp; <span class="kw">operator</span>&lt;&lt; (ostream &amp;out, MyInt &amp;i);
+
+ <span class="kw">public</span>: 
+  MyInt(<span class="dt">int</span> x = <span class="dv">0</span>) {
+    p = <span class="kw">new</span> <span class="dt">int</span>(x);
+  }
+  ~MyInt() { <span class="kw">delete</span> p; }
+
+  <span class="dt">void</span> <span class="kw">operator</span>++() {
+    (*p)++;
+  }
+
+ <span class="kw">private</span>:
+  <span class="dt">int</span>* p;
+};
+
+ostream&amp; <span class="kw">operator</span>&lt;&lt; (ostream &amp;out, MyInt &amp;i) {
+  out &lt;&lt; *i.p;
+  <span class="kw">return</span> out;
+}
+
+}</code></pre></div>
+<p>Operator als <code>friend</code> weil Zugriff auf private Elemente.</p>
+<p>Verwendung:</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> f2(<span class="dt">void</span>) {
+  MyInt i1 = MyInt(<span class="dv">1</span>);
+  ++i1;
+  cout &lt;&lt; i1;
+}</code></pre></div>
+<p>Beachte:</p>
+<p>Operator <code>++</code> hier als Prefixoperator (Details + Erklärung siehe unten)</p>
+<p>Frage: Wieso Referenzparameter für MyInt in <code>ostream&amp; operator&lt;&lt; (ostream &amp;out, MyInt &amp;i)</code></p>
+<p>Echt trickreich. &quot;Recall&quot;: Kopieren mit Pointern.</p>
+<p>Angenommen wir verwenden</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">ostream&amp; <span class="kw">operator</span>&lt;&lt; (ostream &amp;out, MyInt i) { <span class="co">// Keine Referenze auf i !!!!</span>
+  out &lt;&lt; *i.p;
+  <span class="kw">return</span> out;
+}</code></pre></div>
+<p>Destruktor wird auf <code>i</code> aufgerufen was zu <code>delete p</code> führt.</p>
+<p>Durch den call-by value Aufruf <code>cout &lt;&lt; i2</code>, teilen sich <code>i</code> und <code>i2</code> den gleichen Zeiger!</p>
+<p>Deshalb wird nach Rücksprung aus <code>f2</code>, noch einmal <code>delete p</code> ausgeführt, wobei <code>p</code> auf die gleiche Adresse verweist!</p>
+<ul>
+<li>Weiteres Beispiel</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">struct</span> position {
+  <span class="dt">int</span> x;
+  <span class="dt">float</span> y;
+};
+position&amp; <span class="kw">operator</span>++(position&amp; p) { <span class="co">// Prefix</span>
+  p.x++;
+  <span class="kw">return</span> p;
+}
+position&amp; <span class="kw">operator</span>++(position&amp; p, <span class="dt">int</span> dummy) { <span class="co">// Postfix</span>
+<span class="co">// trick: p ++ dummy</span>
+  p.x++;
+  <span class="kw">return</span> p;
+}</code></pre></div>
+<ul>
+<li>Mehr info: <a href="Overloading">http://stackoverflow.com/questions/4421706/operator-overloading</a></li>
+</ul>
+</div>
+<div id="typkonvertierungen-cast" class="slide section level1">
+<h1>Typkonvertierungen (&quot;cast&quot;)</h1>
+<p>Notation</p>
+<pre><code> lhs = cast&lt;type&gt;(rhs)</code></pre>
+<ul>
+<li><code>static_cast</code> ersetzt C-style casts</li>
+<li><code>dynamic_cast</code> nur für Ponter und Referenzen, dynamischer Check, kann fehlschlagen</li>
+<li><code>reinterpret_cast</code> nur für Ponter und Referenzen, ohne dynamischen Check</li>
+</ul>
+<p><em>Casts vermeiden soweit es geht</em></p>
+<p>Weitere Infos: <a href="Typecasting">http://www.cplusplus.com/doc/tutorial/typecasting/</a></p>
+</div>
+<div id="schachtelung-von-blöcken" class="slide section level1">
+<h1>Schachtelung von Blöcken</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"> <span class="kw">for</span>(<span class="dt">int</span> i=<span class="dv">0</span>; i &lt; <span class="dv">10</span>; i++) {
+    { <span class="dt">bool</span> i=<span class="kw">true</span>;
+       { <span class="dt">char</span> i = i ? <span class="st">&#39;a&#39;</span> : <span class="st">&#39;b&#39;</span>;
+         <span class="co">// character i sichtbar</span>
+       }
+    <span class="co">// bool i sichtbar</span>
+    }
+   <span class="co">// int i sichtbar</span>
+ }</code></pre></div>
+<ul>
+<li>Dreifache Deklaration von <code>i</code></li>
+<li>Innere Deklaration &quot;überschreibt&quot; äussere Deklaration</li>
+</ul>
+</div>
+<div id="schachtelung-von-blöcken---anwendungsfalls-locking" class="slide section level1">
+<h1>Schachtelung von Blöcken - Anwendungsfalls Locking</h1>
+<ul>
+<li>Klassisch</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">Mutex m;
+m.lock();
+<span class="co">// do something exclusively</span>
+m.unlock();</code></pre></div>
+<ul>
+<li>Benutzung von geschachteltem Bereich</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">{ 
+ Lock l;
+ <span class="co">// do something exclusively</span>
+
+} <span class="co">// Aufruf Destruktor ==&gt; unlock Objekt l </span></code></pre></div>
+</div>
+<div id="schachtelung-von-deklarationen" class="slide section level1">
+<h1>Schachtelung von Deklarationen</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> C {
+  <span class="kw">public</span>:
+  <span class="co">// ...</span>
+  <span class="kw">private</span>:
+  <span class="kw">enum</span> E { Tag1, Tag2 }; 
+  <span class="kw">class</span> D {
+  <span class="co">// ...</span>
+  };
+};</code></pre></div>
+<ul>
+<li>Lokale Deklaration von Enumeration innerhalb Klasse</li>
+<li>Weitere Beispiele: Klasse innerhalb Klasse, ...</li>
+<li>Funktionsdeklarationen dürfen nicht geschachtelt werden</li>
+</ul>
+</div>
+<div id="ausnahmen-exceptions" class="slide section level1">
+<h1>Ausnahmen (&quot;exceptions&quot;)</h1>
+<p>Ausnahmebehandlung im Falle von z.B. Null Pointer, Speicher ist leer, File kann nicht geöffnet werden, Division durch 0 etc.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="dt">void</span> f() { ... <span class="kw">throw</span> DivZeroError(); ... }
+<span class="dt">int</span> main {
+  <span class="kw">try</span> {
+  f();
+  }
+  <span class="kw">catch</span> (DivZeroError) {
+   <span class="co">//handle error</span>
+  }</code></pre></div>
+<ul>
+<li>Ausnahmen sind C++ Werte
+<ul>
+<li>Ausnahmen können Argumente haben</li>
+</ul></li>
+<li><code>throw</code> löst Ausnahme aus</li>
+<li><code>try</code> Bereich in dem Ausnahme stattfindet</li>
+<li><code>catch</code> sucht nach passender Ausnahmebedingung
+<ul>
+<li>Abarbeitung von oben nach unten</li>
+<li>Nichtbehandelte Ausnahme (&quot;uncaught exception&quot;) führt zu Laufzeitfehler</li>
+</ul></li>
+</ul>
+</div>
+<div id="ausnahmen-beispiel" class="slide section level1">
+<h1>Ausnahmen Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="dt">void</span> compute(<span class="dt">int</span> x, <span class="dt">int</span> y, <span class="dt">int</span> z) { 
+
+
+  <span class="kw">if</span>(y == z) <span class="kw">throw</span> <span class="dv">0</span>;
+  <span class="kw">if</span>(y &gt; z) <span class="kw">throw</span> <span class="st">&#39;a&#39;</span>;
+  <span class="kw">if</span>(y &lt; z) <span class="kw">throw</span> <span class="fl">1.</span><span class="dv">0</span>;
+  <span class="dt">float</span> f = x / (y-z); 
+  cout &lt;&lt; <span class="st">&quot;f= &quot;</span> &lt;&lt; f &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>; 
+
+}
+
+<span class="dt">int</span> main() {
+  <span class="kw">try</span>{ compute(<span class="dv">5</span>,<span class="dv">3</span>,<span class="dv">3</span>); }
+  <span class="kw">catch</span>(<span class="dt">int</span> i) { cout &lt;&lt; <span class="st">&quot;Exception &quot;</span> &lt;&lt; i &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>; }
+  <span class="kw">catch</span>(<span class="dt">char</span>) { cout &lt;&lt; <span class="st">&quot;Exception char </span><span class="ch">\n</span><span class="st">&quot;</span>; }
+}</code></pre></div>
+</div>
+<div id="stl---standard-template-library" class="slide section level1">
+<h1>STL - Standard Template Library</h1>
+<ul>
+<li>Grundlegende Idee und Aufbau
+<ul>
+<li>containers (Datenstrukturen, z.B. vector, list, ...)</li>
+<li>iterators (Datenzugriff)</li>
+<li>algorithms (Sortierung etc, Zugriff via iterators)</li>
+</ul></li>
+<li>Komplexität (Zeit und Speicher) genau festgelegt</li>
+<li><p>Implementierung benützt so ziemlich alle C++ Features (Templates, Operatorenüberladung, ...)</p></li>
+<li>Benutzung erfordert Übung:
+<ul>
+<li>STL container Startpunkt <a href="STL%20container">http://www.cplusplus.com/reference/stl/</a></li>
+<li>Tutorials
+<ul>
+<li><a href="STL">http://www.mochima.com/tutorials/STL.html</a></li>
+<li><a href="STL2">http://www.yolinux.com/TUTORIALS/LinuxTutorialC++STL.html</a></li>
+<li><a href="STL3">http://www.cplusplus.com/doc/tutorial/</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<div id="stl-beispiel" class="slide section level1">
+<h1>STL Beispiel</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;iostream&gt;</span>
+<span class="ot">#include &lt;string&gt;</span>
+<span class="ot">#include &lt;vector&gt;</span>
+<span class="ot">#include &lt;algorithm&gt;</span>
+<span class="kw">using</span> <span class="kw">namespace</span> std;
+
+<span class="dt">int</span> main() {
+  vector&lt;string&gt; v;
+  cout &lt;&lt; <span class="st">&quot;Bitte zu sortierenden Text eingaben, </span><span class="ch">\n</span><span class="st">&quot;</span>
+       &lt;&lt; <span class="st">&quot;Stop mit </span><span class="ch">\&quot;</span><span class="st">stop</span><span class="ch">\&quot;</span><span class="st"> </span><span class="ch">\n</span><span class="st">&quot;</span>;
+  <span class="kw">for</span>(;;) {
+    string s;
+    getline(cin,s);
+    <span class="kw">if</span>(s == <span class="st">&quot;stop&quot;</span>)
+      <span class="kw">break</span>;
+    v.push_back(s);
+  }
+  sort(v.begin(), v.end());
+  cout &lt;&lt; <span class="st">&quot;Text nach Sortierung: </span><span class="ch">\n</span><span class="st">&quot;</span>;
+
+  <span class="kw">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i&lt;v.size(); i++) 
+    cout &lt;&lt; v[i] &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>;
+}</code></pre></div>
+</div>
+<div id="stl-beispiel---containers" class="slide section level1">
+<h1>STL Beispiel - containers</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;vector&gt;</span>
+...
+  vector&lt;string&gt; v;
+...
+  v.push_back(s);</code></pre></div>
+<ul>
+<li>Vektoren von Strings</li>
+<li>Hinzufügen von Elementen (ans Ende)</li>
+</ul>
+</div>
+<div id="stl-beispiel---algorithms" class="slide section level1">
+<h1>STL Beispiel - algorithms</h1>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="ot">#include &lt;algorithm&gt;</span>
+...
+  sort(v.begin(), v.end());
+...</code></pre></div>
+<ul>
+<li><code>v.begin()</code> Position des ersten Elements</li>
+<li><code>v.end()</code> Position hinter letztem Element</li>
+<li>Sortiere kompletten Vektor, oder</li>
+<li>nur Teilabschnitte</li>
+</ul>
+</div>
+<div id="stl-beispiel---iterators" class="slide section level1">
+<h1>STL Beispiel - iterators</h1>
+<ul>
+<li>Klassisch</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  <span class="kw">for</span>(<span class="dt">int</span> i = <span class="dv">0</span>; i&lt;v.size(); i++) 
+    cout &lt;&lt; v[i] &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>;</code></pre></div>
+<ul>
+<li>STL</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">  vector&lt;string&gt;::iterator  iter;
+  <span class="kw">for</span>(iter = v.begin(); iter != v.end(); iter++) 
+    cout &lt;&lt; *iter &lt;&lt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>;</code></pre></div>
+<ul>
+<li>iterator Typ für <code>vector&lt;string&gt;</code></li>
+<li>Überladung von <code>++</code> und <code>*</code></li>
+</ul>
+<!--
+
+# C++ versus Java
+
+Java 
+  call-by value
+  object references
+
+C++
+  call-by value and call-by reference
+  object references via pointers
+
+http://horstmann.com/ccj2/ccjapp3.html
+
+The major difference between Java and C++ is the behavior of object variables. In C++, object variables hold values, not object references. Note that the new operator is never used when constructing objects in C++. You simply supply the construction parameters after the variable name.
+
+If we strictly use pointers (in C++), then there's no difference
+
+-->
+</div>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Martin Sulzmann" />
+  <title>Einführung in C++ - Teil 3</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script type="text/javascript">/*<![CDATA[*/
+  /*
+  March 19, 2004 MathHTML (c) Peter Jipsen http://www.chapman.edu/~jipsen
+  Released under the GNU General Public License version 2 or later.
+  See the GNU General Public License (at http://www.gnu.org/copyleft/gpl.html)
+  for more details.
+  */
+  
+  function convertMath(node) {// for Gecko
+    if (node.nodeType==1) {
+      var newnode =
+        document.createElementNS("http://www.w3.org/1998/Math/MathML",
+          node.nodeName.toLowerCase());
+      for(var i=0; i < node.attributes.length; i++)
+        newnode.setAttribute(node.attributes[i].nodeName,
+          node.attributes[i].value);
+      for (var i=0; i<node.childNodes.length; i++) {
+        var st = node.childNodes[i].nodeValue;
+        if (st==null || st.slice(0,1)!=" " && st.slice(0,1)!="\n")
+          newnode.appendChild(convertMath(node.childNodes[i]));
+      }
+      return newnode;
+    }
+    else return node;
+  }
+  
+  function convert() {
+    var mmlnode = document.getElementsByTagName("math");
+    var st,str,node,newnode;
+    for (var i=0; i<mmlnode.length; i++)
+      if (document.createElementNS!=null)
+        mmlnode[i].parentNode.replaceChild(convertMath(mmlnode[i]),mmlnode[i]);
+      else { // convert for IE
+        str = "";
+        node = mmlnode[i];
+        while (node.nodeName!="/MATH") {
+          st = node.nodeName.toLowerCase();
+          if (st=="#text") str += node.nodeValue;
+          else {
+            str += (st.slice(0,1)=="/" ? "</m:"+st.slice(1) : "<m:"+st);
+            if (st.slice(0,1)!="/")
+               for(var j=0; j < node.attributes.length; j++)
+                 if (node.attributes[j].value!="italic" &&
+                   node.attributes[j].value!="" &&
+                   node.attributes[j].value!="inherit" &&
+                   node.attributes[j].value!=undefined)
+                   str += " "+node.attributes[j].nodeName+"="+
+                       "\""+node.attributes[j].value+"\"";
+            str += ">";
+          }
+          node = node.nextSibling;
+          node.parentNode.removeChild(node.previousSibling);
+        }
+        str += "</m:math>";
+        newnode = document.createElement("span");
+        node.parentNode.replaceChild(newnode,node);
+        newnode.innerHTML = str;
+      }
+  }
+  
+  if (document.createElementNS==null) {
+    document.write("<object id=\"mathplayer\"\
+    classid=\"clsid:32F66A20-7614-11D4-BD11-00104BD3F987\"></object>");
+    document.write("<?import namespace=\"m\" implementation=\"#mathplayer\"?>");
+  }
+  if(typeof window.addEventListener != 'undefined'){
+    window.addEventListener('load', convert, false);
+  }
+  if(typeof window.attachEvent != 'undefined') {
+    window.attachEvent('onload', convert);
+  }
+  /*]]>*/
+  </script>
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Einführung in C++ - Teil 3</h1>
+  <p class="author">
+Martin Sulzmann
+  </p>
+</div>
+<div id="inhalt" class="slide section level1">
+<h1>Inhalt</h1>
+<p>Beachte: Material teilweise auf Deutsch und Englisch.</p>
+</div>
+<div id="polymorphie-in-c-motivation" class="slide section level1">
+<h1>Polymorphie in C++ (Motivation)</h1>
+<p>Polymorphie (griechisch Vielgestaltigkeit) ist ein Programmierkonzept. Zweck: Einheitliche Schnittstelle welche auf verschiedene Typen anwendbar ist. Es gibt verschiedene Formen von Polymorhpie:</p>
+<ul>
+<li><p>Subtypen Polymorphie</p></li>
+<li><p>Parametrische Polymorphie (aka &quot;generics&quot;)</p></li>
+<li><p>Ad-hoc Polymorphie (aka &quot;overloading&quot;)</p></li>
+</ul>
+<p>Unten finden sich eine Reihe von C++ Beispielen.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp">
+<span class="ot">#include &lt;stdio.h&gt;</span>
+
+
+<span class="co">// Coercions</span>
+<span class="dt">int</span> func(<span class="dt">float</span> x) {
+    <span class="kw">if</span> (x &lt; <span class="fl">1.</span><span class="dv">0</span>) <span class="kw">return</span> <span class="dv">1</span>;
+    <span class="kw">return</span> <span class="dv">0</span>;
+}
+
+<span class="dt">void</span> testCoerce() {
+ <span class="dt">int</span> arg = <span class="dv">1</span>;
+ <span class="dt">float</span> res;
+
+ res =func(arg);
+}
+
+
+
+<span class="co">// Vererbung + virtuelle Methoden</span>
+<span class="kw">class</span> Shape {
+<span class="kw">public</span>:
+  <span class="kw">virtual</span> <span class="dt">int</span> area() = <span class="dv">0</span>;
+};
+
+
+<span class="kw">class</span> Square : Shape {
+  <span class="dt">int</span> x;
+<span class="kw">public</span>:
+  Square (<span class="dt">int</span> _x) { x = _x; }
+  <span class="dt">int</span> area() { <span class="kw">return</span> x * x; }
+};
+
+<span class="kw">class</span> Rectangle : Shape {
+  <span class="dt">int</span> x,y;
+<span class="kw">public</span>:
+  Rectangle(<span class="dt">int</span> _x, <span class="dt">int</span> _y) { x = _x; y = _y; }
+  <span class="dt">int</span> area() { <span class="kw">return</span> x * y; }
+};
+
+
+<span class="co">// Ueberladung</span>
+<span class="kw">struct</span> Sq {
+  <span class="dt">int</span> x;
+};
+
+<span class="kw">struct</span> Rec {
+  <span class="dt">int</span> x;
+  <span class="dt">int</span> y;
+};
+
+<span class="dt">int</span> area(Sq s) { <span class="kw">return</span> s.x * s.x; }
+
+<span class="dt">int</span> area(Rec s) { <span class="kw">return</span> s.x * s.y; }
+
+
+
+<span class="co">// Templates</span>
+<span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+<span class="dt">int</span> area(T s, <span class="dt">int</span> f(T)) { <span class="kw">return</span> f(s); }
+
+<span class="dt">int</span> areaSq(Sq s) { <span class="kw">return</span> s.x * s.x; }
+<span class="dt">int</span> areaRec(Rec s) { <span class="kw">return</span> s.x * s.y; }
+
+<span class="dt">void</span> testTemplate() {
+  Sq s = {<span class="dv">2</span>};
+  Rec r = {<span class="dv">2</span>,<span class="dv">3</span>};
+
+  area&lt;Sq&gt;(s, areaSq);
+  area&lt;Rec&gt;(r, areaRec);
+}
+
+
+<span class="dt">int</span> main() {
+
+   <span class="kw">return</span> <span class="dv">0</span>;
+}</code></pre></div>
+</div>
+<div id="subtype-polymorphism" class="slide section level1">
+<h1>Subtype polymorphism</h1>
+<h2 id="coercive-subtyping">Coercive subtyping</h2>
+<ul>
+<li><p>Suppose we have a function of type <code>Float -&gt; Int</code>.</p></li>
+<li><p>It should be safe to pass as an argument a value of type <code>Int</code> and store the resulting value in a variable of type <code>Float</code>.</p></li>
+<li><p>In C-style pseudo code:</p></li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode C"><code class="sourceCode c"><span class="dt">int</span> func(<span class="dt">float</span> x) {
+    <span class="kw">if</span> (x &lt; <span class="fl">1.0</span>) <span class="kw">return</span> <span class="dv">1</span>;
+    <span class="kw">return</span> <span class="dv">0</span>;
+}
+
+<span class="dt">int</span> main() {
+ <span class="dt">int</span> arg = <span class="dv">1</span>;
+ <span class="dt">float</span> res;
+
+ res = func(arg);
+}</code></pre></div>
+<ul>
+<li><p>The point is that in the above described situation, the function of type <code>Float -&gt; Int</code> behaves like a function of type <code>Int -&gt; Float</code>.</p></li>
+<li><p>This is safe, because we can safely coerce the integer argument into floating-point value. The same applies to the return value.</p></li>
+</ul>
+<h3 id="instrumentation">Instrumentation</h3>
+<p>Coercion a value of type <code>Int</code> into a value of type <code>Float</code> implies a change in (data) representation. The actual value remains unchanged however.</p>
+<p>A standard method is to instrument the program based on the program's typing. Assuming we have a function <code>coerce : Int -&gt; Float</code>, instrumention of the above program yields.</p>
+<div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="dt">int</span> main() {
+ <span class="dt">int</span> arg = <span class="dv">1</span>;
+ <span class="dt">float</span> res;
+
+ res = coerce(func(coerce(arg)));
+}</code></pre></div>
+<p>Insertion of the coercion is guided by the subtyping rule.</p>
+<pre><code>We write
+
+G |- e : t --&gt; E 
+
+to denote a source program e with type t where E is the instrumented program.
+
+
+Similar to typing rules, we require rules that tell us how to build coercions.
+
+We write
+
+  |- t1 &lt;= t2 --&gt; c
+
+to denote that t1 is a coercive subtype of t2 where c is the coercion function.
+
+
+(ItoF)   |- Int &lt;= Float --&gt; coerce1
+
+(FtoD)   |- Float &lt;= Double --&gt; coerce2
+
+
+           |- t1 &lt;= t2 --&gt; c1     |- t2 &lt;= t3 --&gt; c2
+(Trans)  ------------------------------------------
+           |- t1 &lt;= t3 -&gt; c2 . c1
+
+where c2 . c1 denotes function composition and
+is equivalent to  \x -&gt; c2(c1(x))
+
+
+The coercive subtyping rule is as follows.
+
+              G |- e : t1 --&gt; E    |- t1 &lt;= t2 --&gt; c
+(CoerceSub)  --------------------------------------
+              G |- e : t2 --&gt; c(E)</code></pre>
+<h2 id="nominal-subtyping">Nominal subtyping</h2>
+<p>Types in subtype relation must be declared explicitely. See for example (sub)class declarations in Java and C++.</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Point {
+  <span class="dt">int</span> x,y;
+}
+
+<span class="kw">class</span> ColoredPoint : Point {
+  <span class="dt">int</span> colorCode;
+}</code></pre></div>
+<p>We have that <code>ColoredPoint &lt;= Point</code>. So, anywhere where a Point object is expected, we can also use an object of type ColoredPoint.</p>
+<h2 id="structural-subtyping">Structural subtyping</h2>
+<p>Consider</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Point {
+  <span class="dt">int</span> x,y;
+}
+
+<span class="kw">class</span> ColoredPoint : Point {
+  <span class="dt">int</span> colorCode;
+}
+
+<span class="kw">class</span> CPoint {
+  <span class="dt">int</span> x, y, colorCode;
+}</code></pre></div>
+<p>Objects of type ColoredPoint and CPoint are structurally equivalent. Every entry in CPoint is also found in ColoredPoint and vice versa. So, Point is a structural subtype of CPoint.</p>
+<h2 id="behavioral-subtyping-aka-liskov-substitution-principle-lsp">Behavioral subtyping (aka Liskov substitution principle = LSP)</h2>
+<p>An expression <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math> is of type <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mn>1</mn></msub><annotation encoding="application/x-tex">t_1</annotation></semantics></math> is a behavioral subtype of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mn>2</mn></msub><annotation encoding="application/x-tex">t_2</annotation></semantics></math>, written <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>t</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">t_1 \leq t_2</annotation></semantics></math>, then <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>e</mi><annotation encoding="application/x-tex">e</annotation></semantics></math> can be used in any context where its expected type is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>t</mi><mn>2</mn></msub><annotation encoding="application/x-tex">t_2</annotation></semantics></math> without changing the behavior of the program.</p>
+<h2 id="inheritance">Inheritance</h2>
+<p>Reuse of an existing implementation (method) and possibly override an existing implementation in a derived class. For example, consider</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> A {
+   <span class="dt">int</span> m1() { <span class="kw">return</span> <span class="dv">1</span>; }
+   <span class="dt">bool</span> m2() { <span class="kw">return</span> <span class="kw">false</span>; }
+}
+
+<span class="kw">class</span> B : A {
+  <span class="dt">int</span> m1() { <span class="kw">return</span> <span class="dv">2</span>; }
+}</code></pre></div>
+<p>Various forms of inheritance:</p>
+<ul>
+<li><p>Single versus multiple inheritance</p></li>
+<li><p>Static versus virtual methods</p></li>
+</ul>
+<p>In general, LSP is no longer satisfied. Consider</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">class</span> Bird {
+  <span class="dt">void</span> fly() { ... }
+}
+
+<span class="kw">class</span> Eagle : Bird {
+  <span class="dt">void</span> fly() { ... }
+}
+
+<span class="kw">class</span> Penguin : Bird {
+  <span class="dt">void</span> fly() { ... } <span class="co">// can NOT fly !!!</span>
+}
+
+
+func(Bird b) {
+    b.fly();
+}
+
+main() {
+  Bird b;
+  Eagle e;
+  Penguin p;
+  func(b);
+  func(e);
+  func(p);    <span class="co">// behavior changes!</span>
+
+}</code></pre></div>
+<p>To guarantee LSP, need to impose stronger conditions (often formalized via &quot;contracts&quot;), or we can restrict the language. For example, in C++, if we only use static methods, LSP is guaranteed.</p>
+<p>Strictly speaking, inheritance and subtyping are different concepts (but often they coincide).</p>
+<p>Subtyping = subtype compatability, use an expression of subtype instead.</p>
+<p>Inheritace = reuse of implementations.</p>
+<p>In languages such as C++ and Java, subtypig can be expressed in terms of inheritance.</p>
+<h2 id="function-subtyping">Function subtyping</h2>
+<p>Recall</p>
+<div class="sourceCode"><pre class="sourceCode C"><code class="sourceCode c"><span class="dt">int</span> func(<span class="dt">float</span> x) {
+    <span class="kw">if</span> (x &lt; <span class="fl">1.0</span>) <span class="kw">return</span> <span class="dv">1</span>;
+    <span class="kw">return</span> <span class="dv">0</span>;
+}
+
+<span class="dt">int</span> main() {
+ <span class="dt">int</span> arg = <span class="dv">1</span>;
+ <span class="dt">float</span> res;
+
+ res = func(arg);  <span class="co">// P</span>
+}</code></pre></div>
+<ul>
+<li><p>We find <code>func : float -&gt; int</code>.</p></li>
+<li><p>At program point P, <code>func</code> is used in the context <code>int -&gt; float</code>.</p></li>
+<li><p>So, we can argue that <code>float -&gt; int &lt;= int -&gt; float</code>.</p></li>
+</ul>
+<p>Subtyping among function in general:</p>
+<ul>
+<li><p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>1</mn></msub><mo accent="false">→</mo><msub><mi>t</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>s</mi><mn>1</mn></msub><mo accent="false">→</mo><msub><mi>s</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">t_1 \rightarrow t_2 \leq s_1 \rightarrow s_2</annotation></semantics></math> iff</p>
+<ol style="list-style-type: decimal">
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>s</mi><mn>1</mn></msub><mo>≤</mo><msub><mi>t</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">s_1 \leq t_1</annotation></semantics></math>, and</li>
+<li><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>t</mi><mn>2</mn></msub><mo>≤</mo><msub><mi>s</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">t_2 \leq s_2</annotation></semantics></math>.</li>
+</ol></li>
+</ul>
+<p>We say, functions are contra-variant in the argument and co-variant in the result.</p>
+</div>
+<div id="parametric-polymorphism" class="slide section level1">
+<h1>Parametric polymorphism</h1>
+<p>A form of polymorphism where a function is implemented without mention of any specific type, i.e.~the implementation is <em>parametric</em>. The function will behave the same for specific instances.</p>
+<h2 id="c">C++</h2>
+<p>What about templates in C++?</p>
+<div class="sourceCode"><pre class="sourceCode cpp"><code class="sourceCode cpp"><span class="kw">template</span>&lt;<span class="kw">typename</span> T&gt;
+<span class="dt">void</span> swap(T&amp; x, T&amp; y) {
+  T tmp;
+  tmp=x; x=y; y=tmp;
+}</code></pre></div>
+<ul>
+<li><p>Templates are syntactic macro language which is expanded at compile-time.</p></li>
+<li><p>The expanded code is type-checked and compiled!</p></li>
+<li><p>This is vaguely connected to parametric polymorphism but it's something different.</p></li>
+<li><p>If you're interested, check out the &quot;Concepts&quot; discussion where some brave people try to enrich C++ with some &quot;real&quot; polymorphism.</p></li>
+</ul>
+<p>The code duplication approach is fairly simply to implement via a type-directed translation scheme. There are two issues:</p>
+<ul>
+<li><p>Code duplication may lead to a blow-up of the resulting size of programs.</p></li>
+<li><p>Calls (recursive) on more specific types may be an issue.</p></li>
+</ul>
+<p>Consider the contrived example.</p>
+<div class="sourceCode"><pre class="sourceCode go"><code class="sourceCode go"><span class="kw">func</span> foo&lt;T&gt;(x T, xs []T, i <span class="dt">int</span>) [] T {
+ <span class="kw">if</span> i &gt; <span class="dv">0</span> {
+   foo&lt;[]T&gt;(xs, [xs], i<span class="dv">-1</span>)               <span class="co">// Requires instance on lists !!!</span>
+ }
+ xs[i] = x
+ <span class="kw">return</span> xs
+}</code></pre></div>
+<p>The &quot;code duplication&quot; approach will not work here. Aside: C++ templates run into the same issue (but let's keep in mind that C++ templates don't provide for static type checking of polymorphic code!).</p>
+<h2 id="java">Java</h2>
+<p>Java generics use a universial representation based on the <code>Object</code> type. That is, after compile-time type checking, polymorphic types are <em>erased</em> and can therefore not be inspected at run-time. This leads to a few restrictions. For example,</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">&lt;T&gt; T <span class="fu">instantiateElementType</span>(List&lt;T&gt; arg) {
+     <span class="kw">return</span> <span class="kw">new</span> <span class="fu">T</span>(); <span class="co">//causes a compile error</span>
+}</code></pre></div>
+<p>yields a compile-time error because the type <code>T</code> necessary to build the object is unknown at run-time.</p>
+<p>Aside: The &quot;costly&quot; coercion issue not a problem in the Java setting. We can cast any object into <code>Object</code>. For the other direction, we apply a type cast which is safe due to compile-time checking.</p>
+<p>But polymorphic array creation is not possible in case of a homogenous translation of polymorphic code.</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="dt">static</span> Object[] <span class="fu">foo</span>(Object a) {
+  Object[] ob = <span class="kw">new</span> Object[<span class="dv">1</span>]
+  ob[<span class="dv">0</span>] = a
+}
+...
+Integer i = <span class="kw">new</span> Integer(<span class="dv">1</span>)
+Integer[] iArr = (Integer[])<span class="fu">foo</span>(i) <span class="co">//not possible</span></code></pre></div>
+<p>## Full type inference</p>
+<p>C++/Java require the programmer to explicitly annotate the program text with</p>
+<ul>
+<li><p>generic (in C++ template) type parameters, e.g. at class/function declaration sites, and</p></li>
+<li><p>instances at use sites.</p></li>
+</ul>
+<p>Languages such as OCaml and Haskell support <em>full</em> type inference in the presence of parametric polymorphismn.</p>
+<ul>
+<li><p>(Parametric) types are automatically inferred.</p></li>
+<li><p>At use sites, the compiler automatically infers the required instance.</p></li>
+</ul>
+<p>Here's an example in Haskell.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">apply f x <span class="fu">=</span> f x</code></pre></div>
+<p>What's the type of apply?</p>
+<p>Possible types are</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">apply ::</span> (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>) <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>
+<span class="ot">apply ::</span> (<span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Char</span>) <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Char</span>
+<span class="fu">...</span></code></pre></div>
+<p>Is there a most general type? Yes, there is!</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">apply ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b</code></pre></div>
+<p>Some use cases.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">test1 <span class="fu">=</span> apply (\x <span class="ot">-&gt;</span> x) <span class="dt">True</span>
+
+test2 <span class="fu">=</span> apply not <span class="dt">False</span>
+
+test3 <span class="fu">=</span> apply head [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>]</code></pre></div>
+</div>
+</body>
+</html>
