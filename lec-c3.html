@@ -404,11 +404,11 @@ Martin Sulzmann
 <div class="sourceCode"><pre class="sourceCode c"><code class="sourceCode c"><span class="ot">#include &lt;stdio.h&gt;</span>
 <span class="dt">int</span> main () { 
   <span class="dt">int</span> i;
-  <span class="dt">int</span> a[<span class="dv">5</span>]{<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>}; 
+  <span class="dt">int</span> a[<span class="dv">5</span>] = {<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>}; 
   <span class="dt">int</span>* ptr;
 
   <span class="co">// Array Name bezeichnet Adresse des ersten Elements</span>
-  ptr = a
+  ptr = a;
   <span class="kw">for</span>(i=<span class="dv">1</span>; i&lt;<span class="dv">5</span>; i++) {
     printf(<span class="st">&quot;%d &quot;</span>,*ptr); 
     ptr++; 
