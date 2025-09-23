@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Martin Sulzmann" />
+  <title>Softwareprojekt - Winter Semester 25/26</title>
+  <style>
+html {
+line-height: 1.5;
+font-family: Georgia, serif;
+font-size: 20px;
+color: #1a1a1a;
+background-color: #fdfdfd;
+}
+body {
+margin: 0 auto;
+max-width: 36em;
+padding-left: 50px;
+padding-right: 50px;
+padding-top: 50px;
+padding-bottom: 50px;
+hyphens: auto;
+overflow-wrap: break-word;
+text-rendering: optimizeLegibility;
+font-kerning: normal;
+}
+@media (max-width: 600px) {
+body {
+font-size: 0.9em;
+padding: 1em;
+}
+h1 {
+font-size: 1.8em;
+}
+}
+@media print {
+body {
+background-color: transparent;
+color: black;
+font-size: 12pt;
+}
+p, h2, h3 {
+orphans: 3;
+widows: 3;
+}
+h2, h3, h4 {
+page-break-after: avoid;
+}
+}
+p {
+margin: 1em 0;
+}
+a {
+color: #1a1a1a;
+}
+a:visited {
+color: #1a1a1a;
+}
+img {
+max-width: 100%;
+}
+h1, h2, h3, h4, h5, h6 {
+margin-top: 1.4em;
+}
+h5, h6 {
+font-size: 1em;
+font-style: italic;
+}
+h6 {
+font-weight: normal;
+}
+ol, ul {
+padding-left: 1.7em;
+margin-top: 1em;
+}
+li > ol, li > ul {
+margin-top: 0;
+}
+blockquote {
+margin: 1em 0 1em 1.7em;
+padding-left: 1em;
+border-left: 2px solid #e6e6e6;
+color: #606060;
+}
+code {
+font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+font-size: 85%;
+margin: 0;
+}
+pre {
+margin: 1em 0;
+overflow: auto;
+}
+pre code {
+padding: 0;
+overflow: visible;
+overflow-wrap: normal;
+}
+.sourceCode {
+background-color: transparent;
+overflow: visible;
+}
+hr {
+background-color: #1a1a1a;
+border: none;
+height: 1px;
+margin: 1em 0;
+}
+table {
+margin: 1em 0;
+border-collapse: collapse;
+width: 100%;
+overflow-x: auto;
+display: block;
+font-variant-numeric: lining-nums tabular-nums;
+}
+table caption {
+margin-bottom: 0.75em;
+}
+tbody {
+margin-top: 0.5em;
+border-top: 1px solid #1a1a1a;
+border-bottom: 1px solid #1a1a1a;
+}
+th {
+border-top: 1px solid #1a1a1a;
+padding: 0.25em 0.5em 0.25em 0.5em;
+}
+td {
+padding: 0.125em 0.5em 0.25em 0.5em;
+}
+header {
+margin-bottom: 4em;
+text-align: center;
+}
+#TOC li {
+list-style: none;
+}
+#TOC ul {
+padding-left: 1.3em;
+}
+#TOC > ul {
+padding-left: 0;
+}
+#TOC a:not(:hover) {
+text-decoration: none;
+}
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Softwareprojekt - Winter Semester 25/26</h1>
+<p class="author">Martin Sulzmann</p>
+</header>
+<h2 id="evaluation">Evaluation</h2>
+<ol type="1">
+<li><p>Schriftliche Klausur, ohne Hilfsmittel, 90min</p></li>
+<li><p>Übungsschein bei erfolgreicher Abgabe aller Aufgaben. Details
+siehe <a href="https://sulzmann.github.io/SoftwareProjekt/schein-ab-wi24-25.html">hier</a></p></li>
+</ol>
+<p>Beachte:</p>
+<ul>
+<li>Abgabetermine für Scheinaufgaben (siehe Übungsleiter)</li>
+</ul>
+<h2 id="inhalt">Inhalt</h2>
+<ul>
+<li>Einführung in C und C++(11,…) und C-artige Programmiersprachen (Go,
+Rust, …)
+<ul>
+<li>Wichtigsten Sprachmerkmale kennen lernen.</li>
+</ul></li>
+<li>Programmieren und spezifizieren lernen
+<ul>
+<li>Problem verstehen und lösen.</li>
+<li>Kodierung der Lösung in C/C++/Go/Rust</li>
+<li>Verifikation und Validation</li>
+</ul></li>
+</ul>
+<h2 id="vorlesungsunterlagen">Vorlesungsunterlagen</h2>
+<ul>
+<li><p><a href="./lec-c-compact.html">Die Programmiersprache
+C</a></p></li>
+<li><p><a href="./swp-formal-spec-roman-numbers.html">From formal
+specifications to executable Go code (“roman numbers”)</a> +</p></li>
+<li><p><a href="./lec-cpp-compact.html">Die Programmiersprache
+C++</a></p></li>
+<li><p><a href="./lec-cpp-advanced-mem.html">C++11
+Speicherverwaltung</a></p></li>
+<li><p><a href="./lec-cpp-advanced-vm.html">Stack-basierte virtuelle
+Maschinen in C++</a></p></li>
+<li><p>Polymorphie, Funktionale Programmierung, …</p></li>
+<li><p>Rust, …</p></li>
+</ul>
+<p>Übungen/Aufgaben</p>
+<ul>
+<li><p><a href="./swp-formal-spec-roman-numbers-assignment.html">Assignment - From
+formal specifications to executable Go code (“roman
+numbers”)</a></p></li>
+<li><p><a href="./exercises.html">C++ Übungsaufgaben</a> (OO, Speicher +
+Verwaltung, Stack-basierte virtuelle Maschinen)</p></li>
+</ul>
+<h1 id="semesterablauf">Semesterablauf</h1>
+<ul>
+<li>Vorlesung
+<ul>
+<li>INFB + MINB</li>
+<li>Dienstags 14:00-17:10</li>
+<li>E201 und auf <a href="https://h-ka-de.zoom-x.de/j/4837536496?pwd=dnlrTmVhWXlYOTFNMEhnYVNtRTJwZz09">zoom</a></li>
+</ul></li>
+<li>Übungen
+<ul>
+<li>Mittwoch 14:00-17:10</li>
+<li>E203</li>
+</ul></li>
+</ul>
+<p>Grober Ablauf siehe unten. Genauere Informationen finden sich im
+Forum (wöchentlicher Eintrag zu jeder Vorlesung).</p>
+<ul>
+<li>W1, 29.09-05.10
+<ul>
+<li>Keine Vorlesung (Klima Puzzle)</li>
+</ul></li>
+<li>W2, 06.10-12.10
+<ul>
+<li>Intro (Was gibt’s alles dieses Semester)</li>
+<li>Die Programmiersprache C</li>
+</ul></li>
+<li>W3, 13.10-19.10
+<ul>
+<li>Programmiersprache C</li>
+</ul></li>
+<li>W4, 20.10-26.10
+<ul>
+<li>Programmiersprache C</li>
+</ul></li>
+<li>W5, 27.10-02.11
+<ul>
+<li>Programmiersprache Go</li>
+</ul></li>
+<li>W6, 03.11-09.11
+<ul>
+<li>Programmiersprache Go</li>
+</ul></li>
+<li>W7, 10.11-16.11
+<ul>
+<li>Programmiersprache Go</li>
+</ul></li>
+<li>W8, 17.11-23.11
+<ul>
+<li>Programmiersprache Go</li>
+</ul></li>
+<li>W9, 24.11-30.11
+<ul>
+<li>Programmiersprache C++</li>
+</ul></li>
+<li>W10, 01.12-07.12
+<ul>
+<li>Programmiersprache C++</li>
+</ul></li>
+<li>W11, 08.12-14.12
+<ul>
+<li>Programmiersprache C++</li>
+</ul></li>
+<li>W12, 15.12-21.12
+<ul>
+<li>Programmiersprache C++</li>
+</ul></li>
+<li>Christmas break</li>
+<li>W13, 05.01-11.01 (Tuesday public holiday)
+<ul>
+<li>Keine Vorlesung</li>
+</ul></li>
+<li>W14, 12.01-18.01
+<ul>
+<li>TBA</li>
+</ul></li>
+<li>W15, 19.01-25.01
+<ul>
+<li>TBA</li>
+</ul></li>
+</ul>
+</body>
+</html>
